@@ -1,0 +1,25 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Folio {
+  id          String   @id @default(cuid())
+  item        String   // Folio number like KeNHA/05/GEN/Vol.7/0673
+  runningNo   String   // Running number like 0673
+  description String?
+  draftedBy   String
+  letterDate  DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("folios")
+}

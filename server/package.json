@@ -1,0 +1,32 @@
+{
+  "name": "quickfolio-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "dev:express": "node dev-server.js",
+    "build": "echo 'No build step required'",
+    "start": "vercel dev",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.17.1",
+    "@prisma/extension-accelerate": "^2.0.2",
+    "@vercel/node": "^2.3.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "prisma": "^6.17.1",
+    "typescript": "^5.0.0",
+    "vercel": "^41.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
