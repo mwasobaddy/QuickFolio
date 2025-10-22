@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Sidebar from './components/Sidebar'
@@ -6,17 +6,24 @@ import FolioTable from './components/FolioTable'
 import CreateFolioModal from './components/CreateFolioModal'
 import { apiUrl } from './lib/api'
 import './App.css'
+import { gsap } from 'gsap'
 
 function App() {
-  const [activeView, setActiveView] = useState('view') // 'view' or 'create'
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [folios, setFolios] = useState([])
   const [loading, setLoading] = useState(true)
+  const mainContentRef = useRef(null)
 
   // Fetch folios on component mount
   useEffect(() => {
     fetchFolios()
   }, [])
+
+  useEffect(() => {
+    if (!loading && mainContentRef.current) {
+      gsap.fromTo(mainContentRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' })
+    }
+  }, [loading])
 
   const fetchFolios = async () => {
     try {
@@ -77,7 +84,7 @@ function App() {
 
   // Skeleton loader component for main content
   const MainContentSkeleton = () => (
-    <main className="flex-1 p-6">
+    <div className="flex-1 p-6 w-full overflow-x-auto">
       <div className="mb-6">
         <div className="h-8 bg-gray-200 rounded w-48 animate-pulse mb-2"></div>
         <div className="h-4 bg-gray-200 rounded w-64 animate-pulse"></div>
@@ -127,46 +134,31 @@ function App() {
           <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
         </div>
       </div>
-    </main>
+    </div>
   )
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 w-full">
       <Sidebar
-        activeView={activeView}
-        onViewChange={setActiveView}
         onCreateClick={() => setShowCreateModal(true)}
       />
 
       {loading ? (
         <MainContentSkeleton />
       ) : (
-        <main className="flex-1 p-6">
+        <div ref={mainContentRef} className="flex-1 p-6 w-full overflow-x-auto">
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900">QuickFolio</h1>
             <p className="text-gray-600">Manage your folios and letters</p>
           </div>
 
-          {activeView === 'view' && (
-            <FolioTable
-              folios={folios}
-              loading={false}
-              onDelete={handleDeleteFolio}
-              onCreateClick={() => setShowCreateModal(true)}
-            />
-          )}
-
-          {activeView === 'create' && (
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">Create New Folio</h2>
-              <CreateFolioModal
-                isOpen={true}
-                onClose={() => setActiveView('view')}
-                onSubmit={handleCreateFolio}
-              />
-            </div>
-          )}
-        </main>
+          <FolioTable
+            folios={folios}
+            loading={false}
+            onDelete={handleDeleteFolio}
+            onCreateClick={() => setShowCreateModal(true)}
+          />
+        </div>
       )}
 
       {showCreateModal && (
