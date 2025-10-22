@@ -3,7 +3,7 @@ import { toast } from 'react-toastify'
 import { X, Calendar, User, FileText, Hash } from 'lucide-react'
 import { gsap } from 'gsap'
 
-function CreateFolioModal({ isOpen, onClose, onSubmit }) {
+function CreateFolioModal({ isOpen, onClose, onSubmit, initialData = null, isEdit = false }) {
   const [formData, setFormData] = useState({
     item: '',
     runningNo: '',
@@ -26,7 +26,27 @@ function CreateFolioModal({ isOpen, onClose, onSubmit }) {
         { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'back.out(1.7)' }
       )
     }
-  }, [isOpen])
+
+    // Populate form with initial data for editing
+    if (isOpen && initialData) {
+      setFormData({
+        item: initialData.item || '',
+        runningNo: initialData.runningNo || '',
+        description: initialData.description || '',
+        draftedBy: initialData.draftedBy || '',
+        letterDate: initialData.letterDate ? new Date(initialData.letterDate).toISOString().split('T')[0] : ''
+      })
+    } else if (isOpen && !initialData) {
+      // Reset form for new folio
+      setFormData({
+        item: '',
+        runningNo: '',
+        description: '',
+        draftedBy: '',
+        letterDate: ''
+      })
+    }
+  }, [isOpen, initialData])
 
   // Skeleton loader component for form fields
   const SkeletonField = ({ className = "" }) => (
@@ -101,7 +121,9 @@ function CreateFolioModal({ isOpen, onClose, onSubmit }) {
     <div ref={overlayRef} className="fixed inset-0 bg-black/10 backdrop-blur-xs flex items-center justify-center z-50">
       <div ref={modalRef} className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Create New Folio</h3>
+          <h3 className="text-lg font-medium text-gray-900">
+            {isEdit ? 'Edit Folio' : 'Create New Folio'}
+          </h3>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600"
@@ -236,7 +258,7 @@ function CreateFolioModal({ isOpen, onClose, onSubmit }) {
                   disabled={loading}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Creating...' : 'Create Folio'}
+                  {loading ? (isEdit ? 'Updating...' : 'Creating...') : (isEdit ? 'Update Folio' : 'Create Folio')}
                 </button>
               </div>
             </>

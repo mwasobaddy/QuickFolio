@@ -10,6 +10,7 @@ import { gsap } from 'gsap'
 
 function App() {
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [editingFolio, setEditingFolio] = useState(null)
   const [folios, setFolios] = useState([])
   const [loading, setLoading] = useState(true)
   const mainContentRef = useRef(null)
@@ -38,10 +39,14 @@ function App() {
     }
   }
 
-  const handleCreateFolio = async (folioData) => {
+  const handleSubmitFolio = async (folioData) => {
     try {
-      const response = await fetch(apiUrl('/api/folios'), {
-        method: 'POST',
+      const isEdit = !!editingFolio
+      const url = isEdit ? apiUrl(`/api/folios?id=${editingFolio.id}`) : apiUrl('/api/folios')
+      const method = isEdit ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -50,21 +55,25 @@ function App() {
 
       if (response.ok) {
         setShowCreateModal(false)
+        setEditingFolio(null)
         fetchFolios() // Refresh the list
-        toast.success('Folio created successfully!')
+        toast.success(`Folio ${isEdit ? 'updated' : 'created'} successfully!`)
       } else {
         const error = await response.json()
-        toast.error(`Error creating folio: ${error.error}`)
+        toast.error(`Error ${isEdit ? 'updating' : 'creating'} folio: ${error.error}`)
       }
     } catch (error) {
-      console.error('Error creating folio:', error)
-      toast.error('Error creating folio. Please try again.')
+      console.error(`Error ${editingFolio ? 'updating' : 'creating'} folio:`, error)
+      toast.error(`Error ${editingFolio ? 'updating' : 'creating'} folio. Please try again.`)
     }
   }
 
-  const handleDeleteFolio = async (id) => {
-    if (!confirm('Are you sure you want to delete this folio?')) return
+  const handleEditFolio = (folio) => {
+    setEditingFolio(folio)
+    setShowCreateModal(true)
+  }
 
+  const handleDeleteFolio = async (id) => {
     try {
       const response = await fetch(apiUrl(`/api/folios?id=${id}`), {
         method: 'DELETE',
@@ -158,6 +167,7 @@ function App() {
               loading={false}
               onDelete={handleDeleteFolio}
               onCreateClick={() => setShowCreateModal(true)}
+              onEditClick={handleEditFolio}
             />
           </div>
         )}
@@ -179,8 +189,13 @@ function App() {
       {showCreateModal && (
         <CreateFolioModal
           isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onSubmit={handleCreateFolio}
+          onClose={() => {
+            setShowCreateModal(false)
+            setEditingFolio(null)
+          }}
+          onSubmit={handleSubmitFolio}
+          initialData={editingFolio}
+          isEdit={!!editingFolio}
         />
       )}
     </>
