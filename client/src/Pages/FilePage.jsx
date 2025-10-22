@@ -74,7 +74,7 @@ function FilePage() {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-4 pb-16 py-8">
+      <div className="max-w-7xl mx-auto px-0 md:px-4 pb-16 py-8">
         <Breadcrumb
           items={[
             {

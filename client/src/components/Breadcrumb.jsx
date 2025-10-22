@@ -6,7 +6,7 @@ function Breadcrumb({ items }) {
       {/* Home breadcrumb - always present */}
       <button
         onClick={items[0]?.onClick}
-        className="flex items-center space-x-1 hover:text-gray-900 transition-colors"
+        className="flex items-center space-x-1 text-blue-700 hover:text-blue-500 transition-colors"
       >
         <Home className="w-4 h-4" />
         <span>Home</span>
@@ -19,10 +19,10 @@ function Breadcrumb({ items }) {
           {item.onClick ? (
             <button
               onClick={item.onClick}
-              className="flex items-center space-x-1 hover:text-gray-900 transition-colors"
+              className="flex items-center space-x-1 text-blue-700 hover:text-blue-500 transition-colors"
             >
-              {item.icon && <item.icon className="w-4 h-4" />}
-              <span>{item.label}</span>
+              {item.icon && <item.icon className="w-4 h-4 " />}
+              <span className="">{item.label}</span>
             </button>
           ) : (
             <div className="flex items-center space-x-1">

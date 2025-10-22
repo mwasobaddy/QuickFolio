@@ -196,6 +196,7 @@ function CreateFolioPage() {
           items={[
             {
               label: 'Folios',
+              className: 'text-red-600 hover:text-gray-900',
               icon: FileText,
               onClick: () => navigate('/folios')
             },
@@ -208,14 +209,6 @@ function CreateFolioPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={() => navigate('/folios')}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors mb-4"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back to Folios</span>
-          </button>
-
           <div className="flex items-center space-x-3">
             <FileText className="h-8 w-8 text-blue-600" />
             <div>

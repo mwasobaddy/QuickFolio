@@ -79,7 +79,7 @@ function FoliosPage() {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-4 pb-16 py-8">
+      <div className="max-w-7xl mx-auto px-0 md:px-4 pb-16 py-8">
         <Breadcrumb
           items={
             selectedFileId && selectedFileName
@@ -110,16 +110,6 @@ function FoliosPage() {
         />
 
         <div className="mb-6">
-            <div className="flex items-center space-x-4 mb-4">
-            <button
-                onClick={() => navigate('/')}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-                <ArrowLeft className="w-5 h-5" />
-                <span>Back to Home</span>
-            </button>
-            </div>
-
             <h1 className="text-3xl font-bold text-gray-900">
             {selectedFileId ? 'Folios in File' : 'All Folios'}
             </h1>

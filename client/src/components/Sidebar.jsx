@@ -9,10 +9,12 @@ function Sidebar() {
   const location = useLocation()
   const [open, setOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(true)
+  const [openDropdown, setOpenDropdown] = useState(null)
   const sidebarRef = useRef(null)
   const overlayRef = useRef(null)
   const menuRef = useRef(null)
   const desktopSidebarRef = useRef(null)
+  const dropdownRefs = useRef({})
 
   useEffect(() => {
     if (open) {
@@ -42,6 +44,31 @@ function Sidebar() {
       })
     }
   }, [collapsed])
+
+  // Handle clicking outside dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openDropdown) {
+        const clickedInsideDropdown = Object.values(dropdownRefs.current).some(ref => ref?.contains(event.target))
+        if (!clickedInsideDropdown) {
+          setOpenDropdown(null)
+        }
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [openDropdown])
+
+  // Animate dropdown appearance
+  useEffect(() => {
+    if (openDropdown) {
+      const dropdown = document.querySelector('.sidebar-dropdown')
+      if (dropdown) {
+        gsap.fromTo(dropdown, { opacity: 0, scale: 0.95, y: -10 }, { opacity: 1, scale: 1, y: 0, duration: 0.2, ease: 'power2.out' })
+      }
+    }
+  }, [openDropdown])
 
   // Helper function to check if route is active
   const isActive = (path) => location.pathname === path
@@ -82,7 +109,7 @@ function Sidebar() {
         )}
       </div>
 
-      <nav className="mt-6 flex-1 overflow-y-auto">
+      <nav className="mt-6 flex-1 overflow-y-visible">
         <div className={`px-3 space-y-2 ${collapsed && !isMobile ? 'px-2' : ''}`}>
           {/* Home/Dashboard Section */}
           <div className="space-y-1">
@@ -104,10 +131,15 @@ function Sidebar() {
           </div>
 
           {/* Files Section */}
-          <div className="space-y-1">
+          <div className="space-y-1 relative">
             <button
+              ref={el => dropdownRefs.current.files = el}
               onClick={() => {
-                setOpen(false)
+                if (collapsed && !isMobile) {
+                  setOpenDropdown(openDropdown === 'files' ? null : 'files')
+                } else {
+                  setOpen(false)
+                }
               }}
               className={`sidebar-button w-full flex items-center ${collapsed && !isMobile ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-full text-left transition-colors ${
                 isMainMenuActive('/files', ['/create-file']) 
@@ -120,7 +152,41 @@ function Sidebar() {
               {(!collapsed || isMobile) && <span className="font-medium">Files</span>}
             </button>
             
-            {/* Create File submenu - only show when expanded */}
+            {/* Dropdown for collapsed Files menu */}
+            {collapsed && !isMobile && openDropdown === 'files' && (
+              <div ref={el => dropdownRefs.current.filesDropdown = el} className="sidebar-dropdown absolute left-full top-0 ml-2 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 min-w-48">
+                <button
+                  onClick={() => {
+                    setOpenDropdown(null)
+                    navigate('/files')
+                  }}
+                  className={`w-full flex items-center space-x-3 px-4 py-2 text-sm transition-colors ${
+                    isActive('/files')
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <FolderOpen className="h-4 w-4 flex-shrink-0" />
+                  <span>All Files</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setOpenDropdown(null)
+                    navigate('/create-file')
+                  }}
+                  className={`w-full flex items-center space-x-3 px-4 py-2 text-sm transition-colors ${
+                    isActive('/create-file')
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Plus className="h-4 w-4 flex-shrink-0" />
+                  <span>Create File</span>
+                </button>
+              </div>
+            )}
+            
+            {/* Expanded submenu for Files */}
             {(!collapsed || isMobile) && (
               <>
                 <button
@@ -156,10 +222,15 @@ function Sidebar() {
           </div>
 
           {/* Folios Section */}
-          <div className="space-y-1">
+          <div className="space-y-1 relative">
             <button
+              ref={el => dropdownRefs.current.folios = el}
               onClick={() => {
-                setOpen(false)
+                if (collapsed && !isMobile) {
+                  setOpenDropdown(openDropdown === 'folios' ? null : 'folios')
+                } else {
+                  setOpen(false)
+                }
               }}
               className={`sidebar-button w-full flex items-center ${collapsed && !isMobile ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-full text-left transition-colors ${
                 isMainMenuActive('/folios', ['/create-folio'])
@@ -172,7 +243,41 @@ function Sidebar() {
               {(!collapsed || isMobile) && <span className="font-medium">Folio</span>}
             </button>
             
-            {/* Create Folio submenu - only show when expanded */}
+            {/* Dropdown for collapsed Folios menu */}
+            {collapsed && !isMobile && openDropdown === 'folios' && (
+              <div ref={el => dropdownRefs.current.foliosDropdown = el} className="sidebar-dropdown absolute left-full top-0 ml-2 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 min-w-48">
+                <button
+                  onClick={() => {
+                    setOpenDropdown(null)
+                    navigate('/folios')
+                  }}
+                  className={`w-full flex items-center space-x-3 px-4 py-2 text-sm transition-colors ${
+                    isActive('/folios')
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <FileText className="h-4 w-4 flex-shrink-0" />
+                  <span>All Folios</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setOpenDropdown(null)
+                    navigate('/create-folio')
+                  }}
+                  className={`w-full flex items-center space-x-3 px-4 py-2 text-sm transition-colors ${
+                    isActive('/create-folio')
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Plus className="h-4 w-4 flex-shrink-0" />
+                  <span>Create Folio</span>
+                </button>
+              </div>
+            )}
+            
+            {/* Expanded submenu for Folios */}
             {(!collapsed || isMobile) && (
               <>
                 <button

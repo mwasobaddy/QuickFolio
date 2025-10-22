@@ -272,14 +272,14 @@ function HomePage() {
             title="Create New File"
             description="Add a new file to organize your folios"
             icon={Plus}
-            onClick={() => navigate('/files/create')}
+            onClick={() => navigate('/create-file')}
             color="bg-blue-500"
           />
           <QuickActionCard
             title="Create New Folio"
             description="Add a new folio to an existing file"
             icon={FileText}
-            onClick={() => navigate('/folios/create')}
+            onClick={() => navigate('/create-folio')}
             color="bg-green-500"
           />
           <QuickActionCard
