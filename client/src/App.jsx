@@ -84,7 +84,7 @@ function App() {
 
   // Skeleton loader component for main content
   const MainContentSkeleton = () => (
-    <div className="flex-1 p-6 w-full overflow-x-auto">
+    <div className="flex-1 p-6 w-full overflow-x-auto pt-16 md:pt-6">
       <div className="mb-6">
         <div className="h-8 bg-gray-200 rounded w-48 animate-pulse mb-2"></div>
         <div className="h-4 bg-gray-200 rounded w-64 animate-pulse"></div>
@@ -138,28 +138,43 @@ function App() {
   )
 
   return (
-    <div className="flex h-screen bg-gray-100 w-full">
-      <Sidebar
-        onCreateClick={() => setShowCreateModal(true)}
-      />
+    <>
+      <div className="flex h-screen bg-gray-100 w-full">
+        <Sidebar
+          onCreateClick={() => setShowCreateModal(true)}
+        />
 
-      {loading ? (
-        <MainContentSkeleton />
-      ) : (
-        <div ref={mainContentRef} className="flex-1 p-6 w-full overflow-x-auto">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">QuickFolio</h1>
-            <p className="text-gray-600">Manage your folios and letters</p>
+        {loading ? (
+          <MainContentSkeleton />
+        ) : (
+          <div ref={mainContentRef} className="flex-1 p-6 w-full overflow-x-auto pt-16 md:pt-6">
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-gray-900">QuickFolio</h1>
+              <p className="text-gray-600">Manage your folios and letters</p>
+            </div>
+
+            <FolioTable
+              folios={folios}
+              loading={false}
+              onDelete={handleDeleteFolio}
+              onCreateClick={() => setShowCreateModal(true)}
+            />
           </div>
+        )}
 
-          <FolioTable
-            folios={folios}
-            loading={false}
-            onDelete={handleDeleteFolio}
-            onCreateClick={() => setShowCreateModal(true)}
-          />
-        </div>
-      )}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+      </div>
 
       {showCreateModal && (
         <CreateFolioModal
@@ -168,20 +183,7 @@ function App() {
           onSubmit={handleCreateFolio}
         />
       )}
-
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-    </div>
+    </>
   )
 }
 
