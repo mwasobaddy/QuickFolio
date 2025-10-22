@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import FolioTable from '../components/FolioTable'
+import Breadcrumb from '../components/Breadcrumb'
 import { apiUrl } from '../lib/api'
 import { toast } from 'react-toastify'
 import { ArrowLeft } from 'lucide-react'
+import { FileText, FolderOpen } from 'lucide-react'
 
 function FoliosPage() {
   const location = useLocation()
@@ -12,12 +14,19 @@ function FoliosPage() {
   const [loading, setLoading] = useState(true)
   const [selectedFileId, setSelectedFileId] = useState(null)
 
+  const [selectedFileName, setSelectedFileName] = useState('')
+
   // Check for selected file from navigation state
   useEffect(() => {
     if (location.state?.selectedFileId) {
       setSelectedFileId(location.state.selectedFileId)
+      // Find the file name from the folios data
+      const file = folios.find(folio => folio.fileId === location.state.selectedFileId)?.file
+      if (file) {
+        setSelectedFileName(file.name)
+      }
     }
-  }, [location.state])
+  }, [location.state, folios])
 
   const fetchFolios = async () => {
     try {
@@ -70,7 +79,36 @@ function FoliosPage() {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-4 pb-16">
+      <div className="max-w-7xl mx-auto px-4 pb-16 py-8">
+        <Breadcrumb
+          items={
+            selectedFileId && selectedFileName
+              ? [
+                  {
+                    label: 'Files',
+                    icon: FolderOpen,
+                    onClick: () => navigate('/')
+                  },
+                  {
+                    label: selectedFileName,
+                    icon: FileText,
+                    onClick: () => navigate('/folios', { state: { selectedFileId } })
+                  },
+                  {
+                    label: 'Folios',
+                    icon: FileText
+                  }
+                ]
+              : [
+                  {
+                    label: 'Folios',
+                    icon: FileText,
+                    onClick: () => navigate('/')
+                  }
+                ]
+          }
+        />
+
         <div className="mb-6">
             <div className="flex items-center space-x-4 mb-4">
             <button

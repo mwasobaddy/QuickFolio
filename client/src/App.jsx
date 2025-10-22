@@ -1,12 +1,18 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { MainLayout } from './Layout'
 import { FoliosPage, FilePage, CreateFilePage, CreateFolioPage } from './Pages'
+import HomePage from './Pages/HomePage'
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={
+          <MainLayout>
+            <HomePage />
+          </MainLayout>
+        } />
+        <Route path="/files" element={
           <MainLayout>
             <FilePage />
           </MainLayout>

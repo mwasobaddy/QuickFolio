@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import FileTable from '../components/FileTable'
+import Breadcrumb from '../components/Breadcrumb'
 import { toast } from 'react-toastify'
 import { apiUrl } from '../lib/api'
+import { FolderOpen } from 'lucide-react'
 
 function FilePage() {
   const navigate = useNavigate()
@@ -72,7 +74,17 @@ function FilePage() {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-4 pb-16">
+      <div className="max-w-7xl mx-auto px-4 pb-16 py-8">
+        <Breadcrumb
+          items={[
+            {
+              label: 'Files',
+              icon: FolderOpen,
+              onClick: () => navigate('/')
+            }
+          ]}
+        />
+
         <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900">All Files</h1>
             <p className="text-gray-600">Manage your files and documents</p>

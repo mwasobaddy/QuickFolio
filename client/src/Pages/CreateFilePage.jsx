@@ -1,18 +1,24 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { ArrowLeft, FileText, User, Calendar, Save } from 'lucide-react'
+import Breadcrumb from '../components/Breadcrumb'
 import { apiUrl } from '../lib/api'
+import { gsap } from 'gsap'
+import { FolderOpen, Plus } from 'lucide-react'
 
 function CreateFilePage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const mainContentRef = useRef(null)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     createdBy: ''
   })
   const [loading, setLoading] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
+  const [errors, setErrors] = useState({})
   const [isEdit, setIsEdit] = useState(false)
 
   useEffect(() => {
@@ -26,33 +32,108 @@ function CreateFilePage() {
         createdBy: initialData.createdBy || ''
       })
     }
+    // No data fetching needed, so set loading to false immediately
+    setPageLoading(false)
   }, [location.state])
 
-  const handleInputChange = (e) => {
+  // GSAP animation for content fade-in
+  useEffect(() => {
+    if (!pageLoading && mainContentRef.current) {
+      gsap.fromTo(mainContentRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' })
+    }
+  }, [pageLoading])
+
+  const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
       [name]: value
     }))
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }))
+    }
   }
+
+  // Skeleton loader component for form
+  const FormSkeleton = () => (
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 pb-16 py-8">
+        {/* Breadcrumb Skeleton */}
+        <div className="flex items-center space-x-2 mb-6">
+          <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="w-16 h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+
+        {/* Header Skeleton */}
+        <div className="mb-8">
+          <div className="w-32 h-5 bg-gray-200 rounded animate-pulse mb-4"></div>
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+            <div>
+              <div className="w-48 h-8 bg-gray-200 rounded animate-pulse mb-2"></div>
+              <div className="w-64 h-4 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Form Skeleton */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="p-6 space-y-6">
+            {/* Form fields skeleton */}
+            {[...Array(4)].map((_, i) => (
+              <div key={i}>
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+                <div className={`w-full ${i === 1 ? 'h-20' : 'h-10'} bg-gray-200 rounded animate-pulse`}></div>
+              </div>
+            ))}
+
+            {/* Timestamps Info Skeleton */}
+            <div className="bg-gray-50 rounded-md p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+              <div className="w-full h-3 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+
+            {/* Actions skeleton */}
+            <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+              <div className="w-20 h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
-    // Validation
-    if (!formData.name.trim()) {
-      toast.error('File name is required')
-      return
-    }
-
-    if (!formData.createdBy.trim()) {
-      toast.error('Created by is required')
-      return
-    }
-
     setLoading(true)
+    setErrors({})
 
     try {
+      // Basic validation
+      const newErrors = {}
+      if (!formData.name.trim()) newErrors.name = 'File name is required'
+      if (!formData.createdBy.trim()) newErrors.createdBy = 'Created by is required'
+
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors)
+        toast.error('Please fill in all required fields')
+        setLoading(false)
+        return
+      }
+
       const submitData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -80,7 +161,7 @@ function CreateFilePage() {
       toast.success(`File ${isEdit ? 'updated' : 'created'} successfully!`);
 
       // Navigate back to files page
-      navigate('/');
+      navigate('/files');
     } catch (error) {
       console.error('File submission error:', error)
       toast.error(error.message || `Error ${isEdit ? 'updating' : 'creating'} file. Please try again.`)
@@ -89,19 +170,27 @@ function CreateFilePage() {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-2xl mx-auto py-8 px-4">
+  return pageLoading ? (
+    <FormSkeleton />
+  ) : (
+    <div ref={mainContentRef} className="min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 pb-16 py-8">
+        <Breadcrumb
+          items={[
+            {
+              label: 'Files',
+              icon: FolderOpen,
+              onClick: () => navigate('/')
+            },
+            {
+              label: isEdit ? 'Edit File' : 'Create File',
+              icon: Plus
+            }
+          ]}
+        />
+
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors mb-4"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back to Files</span>
-          </button>
-
           <div className="flex items-center space-x-3">
             <FileText className="h-8 w-8 text-blue-600" />
             <div>
@@ -128,11 +217,14 @@ function CreateFilePage() {
                 type="text"
                 name="name"
                 value={formData.name}
-                onChange={handleInputChange}
+                onChange={handleChange}
                 placeholder="Enter file name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
+                className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400 ${
+                  errors.name ? 'border-red-500' : 'border-gray-300'
+                }`}
                 disabled={loading}
               />
+              {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
             </div>
 
             {/* Description */}
@@ -144,7 +236,7 @@ function CreateFilePage() {
               <textarea
                 name="description"
                 value={formData.description}
-                onChange={handleInputChange}
+                onChange={handleChange}
                 placeholder="Enter file description (optional)"
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400 resize-none"
@@ -162,11 +254,14 @@ function CreateFilePage() {
                 type="text"
                 name="createdBy"
                 value={formData.createdBy}
-                onChange={handleInputChange}
+                onChange={handleChange}
                 placeholder="Enter your name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
+                className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400 ${
+                  errors.createdBy ? 'border-red-500' : 'border-gray-300'
+                }`}
                 disabled={loading}
               />
+              {errors.createdBy && <p className="mt-1 text-sm text-red-600">{errors.createdBy}</p>}
             </div>
 
             {/* Timestamps Info */}

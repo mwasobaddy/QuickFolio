@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { ArrowLeft, FileText, Hash, User, Calendar, Save } from 'lucide-react'
+import Breadcrumb from '../components/Breadcrumb'
 import { apiUrl } from '../lib/api'
+import { gsap } from 'gsap'
+import { Plus } from 'lucide-react'
 
 function CreateFolioPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const mainContentRef = useRef(null)
   const [formData, setFormData] = useState({
     item: '',
     runningNo: '',
@@ -16,6 +20,7 @@ function CreateFolioPage() {
     fileId: ''
   })
   const [loading, setLoading] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
   const [errors, setErrors] = useState({})
   const [isEdit, setIsEdit] = useState(false)
   const [files, setFiles] = useState([])
@@ -43,14 +48,23 @@ function CreateFolioPage() {
         const response = await fetch(apiUrl('/api/files'))
         if (response.ok) {
           const data = await response.json()
-          setFiles(data)
+          setFiles(data.data || [])
         }
       } catch (error) {
         console.error('Error fetching files:', error)
+      } finally {
+        setPageLoading(false)
       }
     }
     fetchFiles()
   }, [])
+
+  // GSAP animation for content fade-in
+  useEffect(() => {
+    if (!pageLoading && mainContentRef.current) {
+      gsap.fromTo(mainContentRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' })
+    }
+  }, [pageLoading])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -124,9 +138,74 @@ function CreateFolioPage() {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-2xl mx-auto py-8 px-4">
+  // Skeleton loader component for form
+  const FormSkeleton = () => (
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 pb-16 py-8">
+        {/* Breadcrumb Skeleton */}
+        <div className="flex items-center space-x-2 mb-6">
+          <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="w-16 h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+
+        {/* Header Skeleton */}
+        <div className="mb-8">
+          <div className="w-32 h-5 bg-gray-200 rounded animate-pulse mb-4"></div>
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+            <div>
+              <div className="w-48 h-8 bg-gray-200 rounded animate-pulse mb-2"></div>
+              <div className="w-64 h-4 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Form Skeleton */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="p-6 space-y-6">
+            {/* Form fields skeleton */}
+            {[...Array(6)].map((_, i) => (
+              <div key={i}>
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+                <div className={`w-full ${i === 3 ? 'h-20' : 'h-10'} bg-gray-200 rounded animate-pulse`}></div>
+              </div>
+            ))}
+
+            {/* Actions skeleton */}
+            <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+              <div className="w-20 h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  return pageLoading ? (
+    <FormSkeleton />
+  ) : (
+    <div ref={mainContentRef} className="min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 pb-16 py-8">
+        <Breadcrumb
+          items={[
+            {
+              label: 'Folios',
+              icon: FileText,
+              onClick: () => navigate('/folios')
+            },
+            {
+              label: isEdit ? 'Edit Folio' : 'Create Folio',
+              icon: Plus
+            }
+          ]}
+        />
+
         {/* Header */}
         <div className="mb-8">
           <button

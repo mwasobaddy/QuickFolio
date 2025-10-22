@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { FileText, FolderOpen, Menu, X, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { FileText, FolderOpen, Menu, X, ChevronLeft, ChevronRight, Plus, Home } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { gsap } from 'gsap'
 
@@ -84,7 +84,7 @@ function Sidebar() {
 
       <nav className="mt-6 flex-1 overflow-y-auto">
         <div className={`px-3 space-y-2 ${collapsed && !isMobile ? 'px-2' : ''}`}>
-          {/* Files Section */}
+          {/* Home/Dashboard Section */}
           <div className="space-y-1">
             <button
               onClick={() => {
@@ -92,7 +92,25 @@ function Sidebar() {
                 navigate('/')
               }}
               className={`sidebar-button w-full flex items-center ${collapsed && !isMobile ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-full text-left transition-colors ${
-                isMainMenuActive('/', ['/create-file']) 
+                isActive('/')
+                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              } ${collapsed && !isMobile ? 'px-2' : ''}`}
+              title={collapsed && !isMobile ? "Home" : ""}
+            >
+              <Home className="h-5 w-5 flex-shrink-0" />
+              {(!collapsed || isMobile) && <span className="font-medium">Home</span>}
+            </button>
+          </div>
+
+          {/* Files Section */}
+          <div className="space-y-1">
+            <button
+              onClick={() => {
+                setOpen(false)
+              }}
+              className={`sidebar-button w-full flex items-center ${collapsed && !isMobile ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-full text-left transition-colors ${
+                isMainMenuActive('/files', ['/create-file']) 
                   ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               } ${collapsed && !isMobile ? 'px-2' : ''}`}
@@ -108,10 +126,10 @@ function Sidebar() {
                 <button
                   onClick={() => {
                     setOpen(false)
-                    navigate('/')
+                    navigate('/files')
                   }}
                   className={`sidebar-button w-full flex items-center space-x-3 px-3 py-2 ml-6 rounded-full text-left transition-colors ${
-                    isActive('/')
+                    isActive('/files')
                       ? 'bg-blue-50 text-blue-700'
                       : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                   }`}
@@ -142,7 +160,6 @@ function Sidebar() {
             <button
               onClick={() => {
                 setOpen(false)
-                navigate('/folios')
               }}
               className={`sidebar-button w-full flex items-center ${collapsed && !isMobile ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-full text-left transition-colors ${
                 isMainMenuActive('/folios', ['/create-folio'])
