@@ -84,11 +84,14 @@ async function createFolio(req: VercelRequest, res: VercelResponse) {
     });
   }
   
-  // Transform validated data to match CreateFolioInput type
-  const { letterDate, ...restData } = validation.data;
+  // Build CreateFolioInput explicitly so TypeScript sees required fields
+  const parsed = validation.data;
   const data: CreateFolioInput = {
-    ...restData,
-    letterDate: new Date(letterDate),
+    item: parsed.item,
+    runningNo: parsed.runningNo,
+    description: parsed.description,
+    draftedBy: parsed.draftedBy,
+    letterDate: new Date(parsed.letterDate),
   };
 
   const folio = await prisma.folio.create({
