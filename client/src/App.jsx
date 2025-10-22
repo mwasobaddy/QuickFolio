@@ -17,10 +17,14 @@ function App() {
           </MainLayout>
         } />
         <Route path="/create-file" element={
-          <CreateFilePage />
+          <MainLayout>
+            <CreateFilePage />
+          </MainLayout>
         } />
         <Route path="/create-folio" element={
-          <CreateFolioPage />
+          <MainLayout>
+            <CreateFolioPage />
+          </MainLayout>
         } />
         {/* Add more routes here as needed */}
       </Routes>
