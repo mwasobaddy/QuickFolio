@@ -70,7 +70,7 @@ function HomePage() {
 
   const handleDeleteFile = async (fileId) => {
     try {
-      const response = await fetch(apiUrl(`/api/files/${fileId}`), {
+      const response = await fetch(apiUrl(`/api/files?id=${fileId}`), {
         method: 'DELETE',
       });
 
