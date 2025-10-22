@@ -6,7 +6,11 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={
+          <MainLayout>
+            <HomePage />
+          </MainLayout>
+        } />
         <Route path="/folios" element={
           <MainLayout>
             <FoliosPage />
