@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import FolioTable from '../components/FolioTable'
-import CreateFolioModal from '../components/CreateFolioModal'
 import { apiUrl } from '../lib/api'
 import { toast } from 'react-toastify'
 import { ArrowLeft } from 'lucide-react'
@@ -9,26 +8,14 @@ import { ArrowLeft } from 'lucide-react'
 function FoliosPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [editingFolio, setEditingFolio] = useState(null)
   const [folios, setFolios] = useState([])
   const [loading, setLoading] = useState(true)
-  const [selectedCategory, setSelectedCategory] = useState(null)
+  const [selectedFileId, setSelectedFileId] = useState(null)
 
-  // Listen for create modal events from sidebar
+  // Check for selected file from navigation state
   useEffect(() => {
-    const handleOpenCreateModal = () => {
-      setShowCreateModal(true)
-    }
-
-    window.addEventListener('openCreateModal', handleOpenCreateModal)
-    return () => window.removeEventListener('openCreateModal', handleOpenCreateModal)
-  }, [])
-
-  // Check for selected category from navigation state
-  useEffect(() => {
-    if (location.state?.selectedCategory) {
-      setSelectedCategory(location.state.selectedCategory)
+    if (location.state?.selectedFileId) {
+      setSelectedFileId(location.state.selectedFileId)
     }
   }, [location.state])
 
@@ -45,38 +32,9 @@ function FoliosPage() {
     }
   }
 
-  const handleSubmitFolio = async (folioData) => {
-    try {
-      const isEdit = !!editingFolio
-      const url = isEdit ? apiUrl(`/api/folios?id=${editingFolio.id}`) : apiUrl('/api/folios')
-      const method = isEdit ? 'PUT' : 'POST'
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(folioData),
-      })
-
-      if (response.ok) {
-        setShowCreateModal(false)
-        setEditingFolio(null)
-        fetchFolios() // Refresh the list
-        toast.success(`Folio ${isEdit ? 'updated' : 'created'} successfully!`)
-      } else {
-        const error = await response.json()
-        toast.error(`Error ${isEdit ? 'updating' : 'creating'} folio: ${error.error}`)
-      }
-    } catch (error) {
-      console.error(`Error ${editingFolio ? 'updating' : 'creating'} folio:`, error)
-      toast.error(`Error ${editingFolio ? 'updating' : 'creating'} folio. Please try again.`)
-    }
-  }
-
   const handleEditFolio = (folio) => {
-    setEditingFolio(folio)
-    setShowCreateModal(true)
+    // Navigate to edit folio page
+    navigate('/create-folio', { state: { initialData: folio } });
   }
 
   const handleDeleteFolio = async (id) => {
@@ -112,48 +70,37 @@ function FoliosPage() {
 
   return (
     <>
-      <div className="mb-6">
-        <div className="flex items-center space-x-4 mb-4">
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back to Home</span>
-          </button>
+      <div className="max-w-7xl mx-auto px-4 pb-16">
+        <div className="mb-6">
+            <div className="flex items-center space-x-4 mb-4">
+            <button
+                onClick={() => navigate('/')}
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+                <ArrowLeft className="w-5 h-5" />
+                <span>Back to Home</span>
+            </button>
+            </div>
+
+            <h1 className="text-3xl font-bold text-gray-900">
+            {selectedFileId ? 'Folios in File' : 'All Folios'}
+            </h1>
+            <p className="text-gray-600">
+            {selectedFileId
+                ? 'Managing folios within the selected file'
+                : 'Manage your folios and letters'
+            }
+            </p>
         </div>
 
-        <h1 className="text-3xl font-bold text-gray-900">
-          {selectedCategory ? getCategoryTitle(selectedCategory) : 'All Folios'}
-        </h1>
-        <p className="text-gray-600">
-          {selectedCategory
-            ? `Managing ${getCategoryTitle(selectedCategory).toLowerCase()} documents`
-            : 'Manage your folios and letters'
-          }
-        </p>
-      </div>
-
-      <FolioTable
-        folios={folios}
-        loading={false}
-        onDelete={handleDeleteFolio}
-        onCreateClick={() => setShowCreateModal(true)}
-        onEditClick={handleEditFolio}
-      />
-
-      {showCreateModal && (
-        <CreateFolioModal
-          isOpen={showCreateModal}
-          onClose={() => {
-            setShowCreateModal(false)
-            setEditingFolio(null)
-          }}
-          onSubmit={handleSubmitFolio}
-          initialData={editingFolio}
-          isEdit={!!editingFolio}
+        <FolioTable
+            folios={selectedFileId ? folios.filter(folio => folio.fileId === selectedFileId) : folios}
+            loading={false}
+            onDelete={handleDeleteFolio}
+            onCreateClick={() => navigate('/create-folio')}
+            onEditClick={handleEditFolio}
         />
-      )}
+        </div>
     </>
   )
 }

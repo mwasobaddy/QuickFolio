@@ -9,6 +9,7 @@ const createFolioSchema = z.object({
   description: z.string().optional(),
   draftedBy: z.string().min(1),
   letterDate: z.string().datetime(), // ISO string
+  fileId: z.string().min(1),
 });
 
 const updateFolioSchema = z.object({
@@ -17,6 +18,7 @@ const updateFolioSchema = z.object({
   description: z.string().optional(),
   draftedBy: z.string().min(1).optional(),
   letterDate: z.string().datetime().optional(),
+  fileId: z.string().min(1).optional(),
 });
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -58,6 +60,9 @@ async function getFolios(req: VercelRequest, res: VercelResponse) {
   if (id && typeof id === 'string') {
     const folio = await prisma.folio.findUnique({
       where: { id },
+      include: {
+        file: true,
+      },
     });
 
     if (!folio) {
@@ -69,6 +74,9 @@ async function getFolios(req: VercelRequest, res: VercelResponse) {
 
   const folios = await prisma.folio.findMany({
     orderBy: { createdAt: 'desc' },
+    include: {
+      file: true,
+    },
   });
 
   return res.status(200).json({ data: folios });
@@ -92,6 +100,7 @@ async function createFolio(req: VercelRequest, res: VercelResponse) {
     description: parsed.description,
     draftedBy: parsed.draftedBy,
     letterDate: new Date(parsed.letterDate),
+    fileId: parsed.fileId,
   };
 
   const folio = await prisma.folio.create({

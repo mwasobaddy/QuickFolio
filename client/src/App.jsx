@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { MainLayout } from './Layout'
-import { FoliosPage, HomePage } from './Pages'
+import { FoliosPage, FilePage, CreateFilePage, CreateFolioPage } from './Pages'
 
 function App() {
   return (
@@ -8,13 +8,19 @@ function App() {
       <Routes>
         <Route path="/" element={
           <MainLayout>
-            <HomePage />
+            <FilePage />
           </MainLayout>
         } />
         <Route path="/folios" element={
           <MainLayout>
             <FoliosPage />
           </MainLayout>
+        } />
+        <Route path="/create-file" element={
+          <CreateFilePage />
+        } />
+        <Route path="/create-folio" element={
+          <CreateFolioPage />
         } />
         {/* Add more routes here as needed */}
       </Routes>

@@ -5,6 +5,13 @@ export interface Folio {
   description?: string;
   draftedBy: string;
   letterDate: Date;
+  fileId: string;
+  file?: {
+    id: string;
+    name: string;
+    description?: string;
+    createdBy: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -15,6 +22,7 @@ export interface CreateFolioInput {
   description?: string;
   draftedBy: string;
   letterDate: Date;
+  fileId: string;
 }
 
 export interface UpdateFolioInput {
@@ -23,4 +31,5 @@ export interface UpdateFolioInput {
   description?: string;
   draftedBy?: string;
   letterDate?: Date;
+  fileId?: string;
 }

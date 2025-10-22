@@ -3,20 +3,31 @@ export interface File {
   name: string;
   description?: string;
   createdBy: string;
-  folioId: string;
   createdAt: Date;
   updatedAt: Date;
+  folios?: Folio[];
 }
 
 export interface CreateFileInput {
   name: string;
   description?: string;
   createdBy: string;
-  folioNumber: string; // We'll use this to find the folio
 }
 
 export interface UpdateFileInput {
   name?: string;
   description?: string;
   createdBy?: string;
+}
+
+export interface Folio {
+  id: string;
+  item: string;
+  runningNo: string;
+  description?: string;
+  draftedBy: string;
+  letterDate: Date;
+  fileId: string;
+  createdAt: Date;
+  updatedAt: Date;
 }

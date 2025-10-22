@@ -18,10 +18,10 @@ model Folio {
   description String?
   draftedBy   String
   letterDate  DateTime
+  fileId      String   // Reference to the File this folio belongs to
+  file        File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  files       File[]
 
   @@map("folios")
 }
@@ -31,10 +31,10 @@ model File {
   name        String
   description String?
   createdBy   String
-  folioId     String
-  folio       Folio    @relation(fields: [folioId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  folios      Folio[]  // Folios that belong to this file
 
   @@map("files")
 }

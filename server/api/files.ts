@@ -7,7 +7,6 @@ const createFileSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   createdBy: z.string().min(1),
-  folioNumber: z.string().min(1),
 });
 
 const updateFileSchema = z.object({
@@ -50,12 +49,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 }
 
 async function getFiles(req: VercelRequest, res: VercelResponse) {
-  const { id, folioId } = req.query;
+  const { id } = req.query;
 
   if (id && typeof id === 'string') {
     const file = await prisma.file.findUnique({
       where: { id },
-      include: { folio: true },
+      include: {
+        folios: {
+          orderBy: { createdAt: 'desc' }
+        }
+      },
     });
 
     if (!file) {
@@ -65,14 +68,12 @@ async function getFiles(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ data: file });
   }
 
-  let where = {};
-  if (folioId && typeof folioId === 'string') {
-    where = { folioId };
-  }
-
   const files = await prisma.file.findMany({
-    where,
-    include: { folio: true },
+    include: {
+      folios: {
+        orderBy: { createdAt: 'desc' }
+      }
+    },
     orderBy: { createdAt: 'desc' },
   });
 
@@ -91,25 +92,19 @@ async function createFile(req: VercelRequest, res: VercelResponse) {
 
   const parsed = validation.data;
 
-  // Find the folio by item (folioNumber)
-  const folio = await prisma.folio.findFirst({
-    where: { item: parsed.folioNumber },
-  });
-
-  if (!folio) {
-    return res.status(404).json({ error: 'Folio not found' });
-  }
-
-  const data: Omit<CreateFileInput, 'folioNumber'> & { folioId: string } = {
+  const data = {
     name: parsed.name,
     description: parsed.description,
     createdBy: parsed.createdBy,
-    folioId: folio.id,
   };
 
   const file = await prisma.file.create({
     data,
-    include: { folio: true },
+    include: {
+      folios: {
+        orderBy: { createdAt: 'desc' }
+      }
+    },
   });
 
   return res.status(201).json({ data: file });
@@ -137,7 +132,11 @@ async function updateFile(req: VercelRequest, res: VercelResponse) {
     const file = await prisma.file.update({
       where: { id },
       data: validatedData,
-      include: { folio: true },
+      include: {
+        folios: {
+          orderBy: { createdAt: 'desc' }
+        }
+      },
     });
 
     return res.status(200).json({ data: file });

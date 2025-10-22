@@ -1,13 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import FileTable from '../components/FileTable'
-import CreateFileModal from '../components/CreateFileModal'
 import { toast } from 'react-toastify'
 import { apiUrl } from '../lib/api'
 
-function HomePage() {
+function FilePage() {
   const navigate = useNavigate()
-  const [showFileModal, setShowFileModal] = useState(false)
   const [files, setFiles] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -38,34 +36,8 @@ function HomePage() {
   }
 
   const handleFileSelect = (file) => {
-    // Navigate to folios page with the file id to show folios belonging to this file
-    navigate('/folios', { state: { selectedFileId: file.id } })
-  }
-
-  const handleCreateFile = async (fileData) => {
-    try {
-      const response = await fetch(apiUrl('/api/files'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(fileData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create file');
-      }
-
-      const result = await response.json();
-      console.log('File created:', result.data);
-      toast.success('File created successfully!');
-      // Refresh the files list
-      fetchFiles();
-    } catch (error) {
-      console.error('File creation error:', error);
-      toast.error(error.message || 'Error creating file. Please try again.');
-    }
+    // Navigate to folios page with the file's folio as filter
+    navigate('/folios', { state: { selectedFolio: file.folio.item } })
   }
 
   const handleDeleteFile = async (fileId) => {
@@ -89,8 +61,8 @@ function HomePage() {
   }
 
   const handleEditFile = (file) => {
-    // For now, just show a toast. You can implement edit modal later
-    toast.info(`Edit functionality for "${file.name}" coming soon!`);
+    // Navigate to edit file page
+    navigate('/create-file', { state: { initialData: file } });
   }
 
   const handleViewFile = (file) => {
@@ -123,22 +95,15 @@ function HomePage() {
                 files={files}
                 loading={loading}
                 onDelete={handleDeleteFile}
-                onCreateClick={() => setShowFileModal(true)}
+                onCreateClick={() => navigate('/create-file')}
                 onEditClick={handleEditFile}
                 onViewClick={handleViewFile}
             />
             )}
         </div>
-
-        {/* File Upload Modal */}
-        <CreateFileModal
-            isOpen={showFileModal}
-            onClose={() => setShowFileModal(false)}
-            onSubmit={handleCreateFile}
-        />
       </div>
     </>
   )
 }
 
-export default HomePage
+export default FilePage

@@ -1,11 +1,11 @@
-import { Trash2, Plus, Edit } from 'lucide-react'
+import { Trash2, Plus, Edit, Eye } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { useState, useMemo } from 'react'
 import Table from './Table'
 import AdvancedSearchFilter from './AdvancedSearchFilter'
 import DeleteModal from './DeleteModal'
 
-function FolioTable({ folios, loading, onDelete, onCreateClick, onEditClick }) {
+function FileTable({ files, loading, onDelete, onCreateClick, onEditClick, onViewClick }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({})
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null, type: 'single' })
@@ -14,10 +14,10 @@ function FolioTable({ folios, loading, onDelete, onCreateClick, onEditClick }) {
 
   const formatDate = (dateString) => {
     if (!dateString) return '-'
-    
+
     const date = new Date(dateString)
     if (isNaN(date.getTime())) return '-'
-    
+
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -27,93 +27,71 @@ function FolioTable({ folios, loading, onDelete, onCreateClick, onEditClick }) {
 
   const formatDateForCSV = (dateString) => {
     if (!dateString) return ''
-    
+
     const date = new Date(dateString)
     if (isNaN(date.getTime())) return ''
-    
+
     // Format as MM/DD/YYYY which Excel recognizes as dates
     const month = (date.getMonth() + 1).toString().padStart(2, '0')
     const day = date.getDate().toString().padStart(2, '0')
     const year = date.getFullYear()
-    
+
     return `${month}/${day}/${year}`
   }
 
   // Filter and search logic
-  const filteredFolios = useMemo(() => {
-    if (!folios) return []
+  const filteredFiles = useMemo(() => {
+    if (!files) return []
 
-    let filtered = [...folios]
+    let filtered = [...files]
 
     // Apply search term
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase()
-      filtered = filtered.filter(folio =>
-        folio.item?.toLowerCase().includes(term) ||
-        folio.runningNo?.toLowerCase().includes(term) ||
-        folio.description?.toLowerCase().includes(term) ||
-        folio.draftedBy?.toLowerCase().includes(term)
+      filtered = filtered.filter(file =>
+        file.name?.toLowerCase().includes(term) ||
+        file.description?.toLowerCase().includes(term) ||
+        file.folio?.item?.toLowerCase().includes(term)
       )
     }
 
     // Apply advanced filters
-    if (filters.folioNumber) {
-      filtered = filtered.filter(folio =>
-        folio.item?.toLowerCase().includes(filters.folioNumber.toLowerCase())
-      )
-    }
-
-    if (filters.runningNo) {
-      filtered = filtered.filter(folio =>
-        folio.runningNo?.toLowerCase().includes(filters.runningNo.toLowerCase())
+    if (filters.name) {
+      filtered = filtered.filter(file =>
+        file.name?.toLowerCase().includes(filters.name.toLowerCase())
       )
     }
 
     if (filters.description) {
-      filtered = filtered.filter(folio =>
-        folio.description?.toLowerCase().includes(filters.description.toLowerCase())
+      filtered = filtered.filter(file =>
+        file.description?.toLowerCase().includes(filters.description.toLowerCase())
       )
     }
 
-    if (filters.draftedBy) {
-      filtered = filtered.filter(folio =>
-        folio.draftedBy?.toLowerCase().includes(filters.draftedBy.toLowerCase())
+    if (filters.folioNumber) {
+      filtered = filtered.filter(file =>
+        file.folio?.item?.toLowerCase().includes(filters.folioNumber.toLowerCase())
       )
     }
 
     // Date filters
-    if (filters.letterDateFrom) {
-      const fromDate = new Date(filters.letterDateFrom)
-      filtered = filtered.filter(folio =>
-        new Date(folio.letterDate) >= fromDate
-      )
-    }
-
-    if (filters.letterDateTo) {
-      const toDate = new Date(filters.letterDateTo)
-      toDate.setHours(23, 59, 59, 999) // End of day
-      filtered = filtered.filter(folio =>
-        new Date(folio.letterDate) <= toDate
-      )
-    }
-
     if (filters.createdFrom) {
       const fromDate = new Date(filters.createdFrom)
-      filtered = filtered.filter(folio =>
-        new Date(folio.createdAt) >= fromDate
+      filtered = filtered.filter(file =>
+        new Date(file.createdAt) >= fromDate
       )
     }
 
     if (filters.createdTo) {
       const toDate = new Date(filters.createdTo)
       toDate.setHours(23, 59, 59, 999) // End of day
-      filtered = filtered.filter(folio =>
-        new Date(folio.createdAt) <= toDate
+      filtered = filtered.filter(file =>
+        new Date(file.createdAt) <= toDate
       )
     }
 
     return filtered
-  }, [folios, searchTerm, filters])
+  }, [files, searchTerm, filters])
 
   const handleDelete = async (ids) => {
     setDeleteLoading(true)
@@ -157,22 +135,22 @@ function FolioTable({ folios, loading, onDelete, onCreateClick, onEditClick }) {
     try {
       // Simulate async operation for better UX (even though export is fast)
       await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // Custom export function for folios
-      const headers = 'Folio Number,Running No,Description,Drafted By,Letter Date,Created\n'
-      const rows = data.map(folio => 
-        `"${folio.item}","${folio.runningNo}","${folio.description || ''}","${folio.draftedBy}","${formatDateForCSV(folio.letterDate)}","${formatDateForCSV(folio.createdAt)}"`
+
+      // Custom export function for files
+      const headers = 'File Name,Description,Folio,Created\n'
+      const rows = data.map(file =>
+        `"${file.name}","${file.description || ''}","${file.folio?.item || ''}","${formatDateForCSV(file.createdAt)}"`
       ).join('\n')
-      
+
       const csv = headers + rows
       const blob = new Blob([csv], { type: 'text/csv' })
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `folios-export-${Date.now()}.csv`
+      a.download = `files-export-${Date.now()}.csv`
       a.click()
       window.URL.revokeObjectURL(url)
-      toast.success('Folios exported successfully')
+      toast.success('Files exported successfully')
     } finally {
       setExportLoading(false)
     }
@@ -189,22 +167,13 @@ function FolioTable({ folios, loading, onDelete, onCreateClick, onEditClick }) {
   const SkeletonRow = () => (
     <tr>
       <td className="px-6 py-4 whitespace-nowrap">
-        <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="h-4 bg-gray-200 rounded w-12 animate-pulse"></div>
-      </td>
-      <td className="px-6 py-4">
         <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+      <td className="px-6 py-4">
+        <div className="h-4 bg-gray-200 rounded w-48 animate-pulse"></div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
-        <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+        <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
@@ -217,16 +186,10 @@ function FolioTable({ folios, loading, onDelete, onCreateClick, onEditClick }) {
 
   const columns = [
     {
-      key: 'item',
-      label: 'Folio Number',
+      key: 'name',
+      label: 'File Name',
       sortable: true,
       className: 'px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900'
-    },
-    {
-      key: 'runningNo',
-      label: 'Running_No',
-      sortable: true,
-      className: 'px-6 py-4 whitespace-nowrap text-sm text-gray-500'
     },
     {
       key: 'description',
@@ -236,24 +199,11 @@ function FolioTable({ folios, loading, onDelete, onCreateClick, onEditClick }) {
       accessor: (row) => row.description || '-'
     },
     {
-      key: 'file',
-      label: 'File',
+      key: 'folio',
+      label: 'Folio',
       sortable: true,
       className: 'px-6 py-4 whitespace-nowrap text-sm text-gray-500',
-      accessor: (row) => row.file?.name || '-'
-    },
-    {
-      key: 'draftedBy',
-      label: 'Drafted_By',
-      sortable: true,
-      className: 'px-6 py-4 whitespace-nowrap text-sm text-gray-500'
-    },
-    {
-      key: 'letterDate',
-      label: 'Letter_Date',
-      sortable: true,
-      className: 'px-6 py-4 whitespace-nowrap text-sm text-gray-500',
-      accessor: (row) => formatDate(row.letterDate)
+      accessor: (row) => row.folio?.item || '-'
     },
     {
       key: 'createdAt',
@@ -270,11 +220,23 @@ function FolioTable({ folios, loading, onDelete, onCreateClick, onEditClick }) {
       render: (row) => (
         <div className="flex justify-end space-x-2">
           <button
+            onClick={() => onViewClick(row)}
+            disabled={deleteLoading || exportLoading}
+            className={`p-1 transition-colors ${
+              deleteLoading || exportLoading
+                ? 'text-gray-400 cursor-not-allowed'
+                : 'text-green-600 hover:text-green-900'
+            }`}
+            title="View"
+          >
+            <Eye className="h-4 w-4" />
+          </button>
+          <button
             onClick={() => onEditClick(row)}
             disabled={deleteLoading || exportLoading}
             className={`p-1 transition-colors ${
-              deleteLoading || exportLoading 
-                ? 'text-gray-400 cursor-not-allowed' 
+              deleteLoading || exportLoading
+                ? 'text-gray-400 cursor-not-allowed'
                 : 'text-blue-600 hover:text-blue-900'
             }`}
             title="Edit"
@@ -288,8 +250,8 @@ function FolioTable({ folios, loading, onDelete, onCreateClick, onEditClick }) {
             }}
             disabled={deleteLoading || exportLoading}
             className={`p-1 transition-colors ${
-              deleteLoading || exportLoading 
-                ? 'text-gray-400 cursor-not-allowed' 
+              deleteLoading || exportLoading
+                ? 'text-gray-400 cursor-not-allowed'
                 : 'text-red-600 hover:text-red-900'
             }`}
             title="Delete"
@@ -316,19 +278,13 @@ function FolioTable({ folios, loading, onDelete, onCreateClick, onEditClick }) {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Folio Number
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Running No
+                  File Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Description
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Drafted By
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Letter Date
+                  Folio
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Created
@@ -357,7 +313,7 @@ function FolioTable({ folios, loading, onDelete, onCreateClick, onEditClick }) {
     <div className="bg-white rounded-lg shadow">
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900">Folios</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Files</h2>
           <button
             onClick={() => {
               onCreateClick()
@@ -370,7 +326,7 @@ function FolioTable({ folios, loading, onDelete, onCreateClick, onEditClick }) {
             }`}
           >
             <Plus className="h-4 w-4" />
-            <span>New Folio</span>
+            <span>New File</span>
           </button>
         </div>
       </div>
@@ -383,7 +339,7 @@ function FolioTable({ folios, loading, onDelete, onCreateClick, onEditClick }) {
 
       <Table
         columns={columns}
-        data={filteredFolios}
+        data={filteredFiles}
         loading={loading || deleteLoading || exportLoading}
         onDelete={handleDelete}
         onExport={handleExport}
@@ -391,25 +347,25 @@ function FolioTable({ folios, loading, onDelete, onCreateClick, onEditClick }) {
         enableSelection={true}
         enableSort={true}
         enableExport={true}
-        emptyMessage="No folios"
-        emptyDescription="Get started by creating a new folio."
+        emptyMessage="No files"
+        emptyDescription="Get started by creating a new file."
       />
 
       <DeleteModal
         isOpen={deleteModal.isOpen}
         onClose={closeDeleteModal}
         onConfirm={confirmDelete}
-        title={deleteModal.type === 'multiple' ? "Delete Folios" : "Delete Folio"}
+        title={deleteModal.type === 'multiple' ? "Delete Files" : "Delete File"}
         message={
           deleteModal.type === 'multiple' && Array.isArray(deleteModal.item)
-            ? `Are you sure you want to delete ${deleteModal.item.length} folio(s)? This action cannot be undone.`
-            : `Are you sure you want to delete folio "${deleteModal.item?.item}"? This action cannot be undone.`
+            ? `Are you sure you want to delete ${deleteModal.item.length} file(s)? This action cannot be undone.`
+            : `Are you sure you want to delete file "${deleteModal.item?.name}"? This action cannot be undone.`
         }
-        confirmText={deleteModal.type === 'multiple' ? "Delete Folios" : "Delete Folio"}
+        confirmText={deleteModal.type === 'multiple' ? "Delete Files" : "Delete File"}
         variant="danger"
       />
     </div>
   )
 }
 
-export default FolioTable
+export default FileTable
