@@ -89,6 +89,7 @@ function Sidebar() {
             <button
               onClick={() => {
                 setOpen(false)
+                navigate('/')
               }}
               className={`sidebar-button w-full flex items-center ${collapsed && !isMobile ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-full text-left transition-colors ${
                 isMainMenuActive('/', ['/create-file']) 
@@ -141,6 +142,7 @@ function Sidebar() {
             <button
               onClick={() => {
                 setOpen(false)
+                navigate('/folios')
               }}
               className={`sidebar-button w-full flex items-center ${collapsed && !isMobile ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-full text-left transition-colors ${
                 isMainMenuActive('/folios', ['/create-folio'])
