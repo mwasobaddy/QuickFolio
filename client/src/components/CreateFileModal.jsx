@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { toast } from 'react-toastify'
-import { X, FileText, Hash, User, Calendar, Upload } from 'lucide-react'
+import { X, FileText, Hash, User, Calendar } from 'lucide-react'
 import { gsap } from 'gsap'
 
 function CreateFileModal({ isOpen, onClose, onSubmit, initialData = null, isEdit = false }) {
@@ -8,8 +8,7 @@ function CreateFileModal({ isOpen, onClose, onSubmit, initialData = null, isEdit
     name: '',
     folioNumber: '',
     description: '',
-    createdBy: '',
-    file: null
+    createdBy: ''
   })
   const [loading, setLoading] = useState(false)
   const modalRef = useRef(null)
@@ -32,8 +31,7 @@ function CreateFileModal({ isOpen, onClose, onSubmit, initialData = null, isEdit
         name: initialData.name || '',
         folioNumber: initialData.folioNumber || '',
         description: initialData.description || '',
-        createdBy: initialData.createdBy || '',
-        file: null // File uploads don't persist in edit mode
+        createdBy: initialData.createdBy || ''
       })
     } else if (isOpen && !initialData) {
       // Reset form for new file
@@ -41,8 +39,7 @@ function CreateFileModal({ isOpen, onClose, onSubmit, initialData = null, isEdit
         name: '',
         folioNumber: '',
         description: '',
-        createdBy: '',
-        file: null
+        createdBy: ''
       })
     }
   }, [isOpen, initialData])
@@ -53,40 +50,6 @@ function CreateFileModal({ isOpen, onClose, onSubmit, initialData = null, isEdit
       ...prev,
       [name]: value
     }))
-  }
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      // Validate file size (10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('File size must be less than 10MB')
-        return
-      }
-
-      // Validate file type
-      const allowedTypes = [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'text/plain',
-        'image/jpeg',
-        'image/png',
-        'image/gif'
-      ]
-
-      if (!allowedTypes.includes(file.type)) {
-        toast.error('File type not supported. Please upload PDF, Word, Excel, or image files.')
-        return
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        file: file
-      }))
-    }
   }
 
   const handleSubmit = async (e) => {
@@ -108,27 +71,19 @@ function CreateFileModal({ isOpen, onClose, onSubmit, initialData = null, isEdit
       return
     }
 
-    if (!isEdit && !formData.file) {
-      toast.error('Please select a file to upload')
-      return
-    }
-
     setLoading(true)
 
     try {
-      // Prepare form data for submission
-      const submitData = new FormData()
-      submitData.append('name', formData.name.trim())
-      submitData.append('folioNumber', formData.folioNumber.trim())
-      submitData.append('description', formData.description.trim())
-      submitData.append('createdBy', formData.createdBy.trim())
-
-      if (formData.file) {
-        submitData.append('file', formData.file)
-      }
+      // Prepare data for submission
+      const submitData = {
+        name: formData.name.trim(),
+        folioNumber: formData.folioNumber.trim(),
+        description: formData.description.trim(),
+        createdBy: formData.createdBy.trim(),
+      };
 
       if (isEdit && initialData?.id) {
-        submitData.append('id', initialData.id)
+        submitData.id = initialData.id;
       }
 
       await onSubmit(submitData)
@@ -167,7 +122,7 @@ function CreateFileModal({ isOpen, onClose, onSubmit, initialData = null, isEdit
           <div className="flex items-center space-x-3">
             <FileText className="h-6 w-6 text-blue-600" />
             <h3 className="text-lg font-medium text-gray-900">
-              {isEdit ? 'Edit File' : 'Upload New File'}
+              {isEdit ? 'Edit File' : 'Create New File'}
             </h3>
           </div>
           <button
@@ -193,9 +148,8 @@ function CreateFileModal({ isOpen, onClose, onSubmit, initialData = null, isEdit
               value={formData.name}
               onChange={handleInputChange}
               placeholder="Enter file name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400 placeholder:text-gray-400"
               disabled={loading}
-              required
             />
           </div>
 
@@ -211,9 +165,8 @@ function CreateFileModal({ isOpen, onClose, onSubmit, initialData = null, isEdit
               value={formData.folioNumber}
               onChange={handleInputChange}
               placeholder="e.g., KeNHA/05/GEN/Vol.7/0673"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
               disabled={loading}
-              required
             />
           </div>
 
@@ -229,7 +182,7 @@ function CreateFileModal({ isOpen, onClose, onSubmit, initialData = null, isEdit
               onChange={handleInputChange}
               placeholder="Enter file description (optional)"
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400 resize-none"
               disabled={loading}
             />
           </div>
@@ -246,47 +199,10 @@ function CreateFileModal({ isOpen, onClose, onSubmit, initialData = null, isEdit
               value={formData.createdBy}
               onChange={handleInputChange}
               placeholder="Enter your name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
               disabled={loading}
-              required
             />
           </div>
-
-          {/* File Upload */}
-          {!isEdit && (
-            <div>
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-                <Upload className="h-4 w-4" />
-                <span>File Upload *</span>
-              </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-blue-400 transition-colors">
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  id="file-upload"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif"
-                  disabled={loading}
-                />
-                <label htmlFor="file-upload" className="cursor-pointer">
-                  <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">
-                    {formData.file ? formData.file.name : 'Click to upload or drag and drop'}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    PDF, Word, Excel, Text, Images (max 10MB)
-                  </p>
-                </label>
-              </div>
-              {formData.file && (
-                <div className="mt-2 p-2 bg-blue-50 rounded-md">
-                  <p className="text-sm text-blue-700">
-                    Selected: {formData.file.name} ({(formData.file.size / 1024 / 1024).toFixed(2)} MB)
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Timestamps Info */}
           <div className="bg-gray-50 rounded-md p-3">
@@ -314,7 +230,7 @@ function CreateFileModal({ isOpen, onClose, onSubmit, initialData = null, isEdit
               disabled={loading}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? (isEdit ? 'Updating...' : 'Uploading...') : (isEdit ? 'Update File' : 'Upload File')}
+              {loading ? (isEdit ? 'Updating...' : 'Creating...') : (isEdit ? 'Update File' : 'Create File')}
             </button>
           </div>
         </form>

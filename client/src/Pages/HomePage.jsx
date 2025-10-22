@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import Card from '../components/Card'
 import CreateFileModal from '../components/CreateFileModal'
-import { Beaker, BookOpen, Award, FileText, Plus, Upload } from 'lucide-react'
+import { Beaker, BookOpen, Award, FileText, Plus } from 'lucide-react'
 import { gsap } from 'gsap'
 import { toast } from 'react-toastify'
 
@@ -34,20 +34,25 @@ function HomePage() {
 
   const handleCreateFile = async (fileData) => {
     try {
-      // Here you would typically send the file data to your API
-      // For now, we'll just show a success message
-      console.log('File data:', fileData)
-      toast.success('File uploaded successfully!')
+      const response = await fetch('/api/files', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(fileData),
+      });
 
-      // In a real implementation, you would:
-      // const response = await fetch('/api/files', {
-      //   method: 'POST',
-      //   body: fileData
-      // })
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create file');
+      }
 
+      const result = await response.json();
+      console.log('File created:', result.data);
+      toast.success('File created successfully!');
     } catch (error) {
-      console.error('File upload error:', error)
-      toast.error('Error uploading file. Please try again.')
+      console.error('File creation error:', error);
+      toast.error(error.message || 'Error creating file. Please try again.');
     }
   }
 
@@ -84,7 +89,7 @@ function HomePage() {
           <div className="flex items-center justify-center space-x-3 mb-4">
             <FileText className="w-12 h-12 text-blue-600" />
             <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              QuickFolio
+              QuickFolio by mwasobaddy
             </h1>
           </div>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -120,7 +125,7 @@ function HomePage() {
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <p className="text-gray-600">Upload files directly or browse by category</p>
+          <p className="text-gray-600">Create files directly or browse by category</p>
         </div>
 
         <div className="flex justify-center">
@@ -128,8 +133,8 @@ function HomePage() {
             onClick={() => setShowFileModal(true)}
             className="flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
           >
-            <Upload className="w-6 h-6" />
-            <span>Upload New File</span>
+            <Plus className="w-6 h-6" />
+            <span>Create New File</span>
           </button>
         </div>
       </div>
