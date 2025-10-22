@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { FileText, Plus, Eye, Menu, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { gsap } from 'gsap'
 
-function Sidebar({ onCreateClick }) {
+function Sidebar() {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const sidebarRef = useRef(null)
   const overlayRef = useRef(null)
@@ -50,7 +52,7 @@ function Sidebar({ onCreateClick }) {
           <button
             onClick={() => {
               setOpen(false)
-              toast.info('Viewing folios...')
+              navigate('/folios')
             }}
             className={`sidebar-button w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-left transition-colors bg-blue-50 text-blue-700 border-r-2 border-blue-700`}
           >
@@ -60,8 +62,11 @@ function Sidebar({ onCreateClick }) {
 
           <button
             onClick={() => {
-              onCreateClick()
+              // For now, we'll trigger the create modal through a state or callback
+              // This will be handled by the page component
               setOpen(false)
+              // We can use a custom event or context to trigger the modal
+              window.dispatchEvent(new CustomEvent('openCreateModal'))
             }}
             className={`sidebar-button w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-left transition-colors text-gray-600 hover:bg-gray-50 hover:text-gray-900`}
           >
@@ -76,8 +81,8 @@ function Sidebar({ onCreateClick }) {
           <h3 className="text-sm font-medium text-blue-900 mb-2">Quick Actions</h3>
           <button
             onClick={() => {
-              onCreateClick()
               setOpen(false)
+              window.dispatchEvent(new CustomEvent('openCreateModal'))
             }}
             className="w-full bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
           >
