@@ -84,9 +84,11 @@ async function createFolio(req: VercelRequest, res: VercelResponse) {
     });
   }
   
+  // Transform validated data to match CreateFolioInput type
+  const { letterDate, ...restData } = validation.data;
   const data: CreateFolioInput = {
-    ...validation.data,
-    letterDate: new Date(validation.data.letterDate),
+    ...restData,
+    letterDate: new Date(letterDate),
   };
 
   const folio = await prisma.folio.create({
