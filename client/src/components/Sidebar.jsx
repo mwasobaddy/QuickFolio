@@ -16,7 +16,7 @@ function Sidebar({ onCreateClick }) {
       gsap.to(sidebarRef.current, { x: 0, duration: 0.3, ease: 'power2.out' })
       // Animate overlay in
       gsap.set(overlayRef.current, { opacity: 0 })
-      gsap.to(overlayRef.current, { opacity: 0.3, duration: 0.3 })
+      gsap.to(overlayRef.current, { opacity: 1, duration: 0.3 })
       // Stagger animate buttons
       gsap.fromTo('.sidebar-button', { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.3, stagger: 0.1, delay: 0.2 })
     } else {
@@ -62,7 +62,6 @@ function Sidebar({ onCreateClick }) {
             onClick={() => {
               onCreateClick()
               setOpen(false)
-              toast.info('Opening create folio form...')
             }}
             className={`sidebar-button w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-left transition-colors text-gray-600 hover:bg-gray-50 hover:text-gray-900`}
           >
@@ -79,7 +78,6 @@ function Sidebar({ onCreateClick }) {
             onClick={() => {
               onCreateClick()
               setOpen(false)
-              toast.info('Opening create folio form...')
             }}
             className="w-full bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
           >
@@ -92,18 +90,26 @@ function Sidebar({ onCreateClick }) {
 
   return (
     <>
-      {/* Hamburger menu icon for mobile */}
-      <button
-        ref={menuRef}
-        className="md:hidden fixed top-4 left-4 z-40 bg-white rounded-full p-2 shadow-lg focus:outline-none"
-        onClick={() => {
-          gsap.to(menuRef.current, { rotation: 180, duration: 0.2, ease: 'power2.inOut', yoyo: true, repeat: 1 })
-          setOpen(true)
-        }}
-        aria-label="Open sidebar"
-      >
-        <Menu className="h-7 w-7 text-blue-700" />
-      </button>
+      {/* Mobile sticky header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-200">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center space-x-2">
+            <FileText className="h-6 w-6 text-blue-600" />
+            <h1 className="text-lg font-bold text-gray-900">QuickFolio</h1>
+          </div>
+          <button
+            ref={menuRef}
+            className="bg-blue-50 rounded-full p-2 focus:outline-none hover:bg-blue-100 transition-colors"
+            onClick={() => {
+              gsap.to(menuRef.current, { rotation: 180, duration: 0.2, ease: 'power2.inOut', yoyo: true, repeat: 1 })
+              setOpen(true)
+            }}
+            aria-label="Open sidebar"
+          >
+            <Menu className="h-6 w-6 text-blue-700" />
+          </button>
+        </div>
+      </div>
 
       {/* Sidebar for desktop */}
       <div className="hidden md:block h-full">
@@ -113,7 +119,7 @@ function Sidebar({ onCreateClick }) {
       {/* Sidebar drawer and overlay for mobile */}
       <div
         ref={overlayRef}
-        className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-30"
+        className={`fixed inset-0 bg-black/10 backdrop-blur-xs z-30 ${open ? 'block' : 'hidden'}`}
         onClick={() => setOpen(false)}
         style={{ opacity: 0 }}
       ></div>
