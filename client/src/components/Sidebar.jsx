@@ -46,6 +46,12 @@ function Sidebar() {
   // Helper function to check if route is active
   const isActive = (path) => location.pathname === path
 
+  // Helper function to check if main menu should be highlighted
+  const isMainMenuActive = (mainPath, subPaths = []) => {
+    if (location.pathname === mainPath) return true
+    return subPaths.some(subPath => location.pathname === subPath)
+  }
+
   // Sidebar content as a function for reuse
   const sidebarContent = (isMobile = false) => (
     <div className={`bg-white shadow-lg h-full flex flex-col relative ${isMobile ? 'w-64' : ''}`}>
@@ -83,10 +89,9 @@ function Sidebar() {
             <button
               onClick={() => {
                 setOpen(false)
-                navigate('/')
               }}
-              className={`sidebar-button w-full flex items-center ${collapsed && !isMobile ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-lg text-left transition-colors ${
-                isActive('/') 
+              className={`sidebar-button w-full flex items-center ${collapsed && !isMobile ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-full text-left transition-colors ${
+                isMainMenuActive('/', ['/create-file']) 
                   ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               } ${collapsed && !isMobile ? 'px-2' : ''}`}
@@ -98,20 +103,36 @@ function Sidebar() {
             
             {/* Create File submenu - only show when expanded */}
             {(!collapsed || isMobile) && (
-              <button
-                onClick={() => {
-                  setOpen(false)
-                  navigate('/create-file')
-                }}
-                className={`sidebar-button w-full flex items-center space-x-3 px-3 py-2 ml-6 rounded-lg text-left transition-colors ${
-                  isActive('/create-file')
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-              >
-                <Plus className="h-4 w-4 flex-shrink-0" />
-                <span className="text-sm">Create File</span>
-              </button>
+              <>
+                <button
+                  onClick={() => {
+                    setOpen(false)
+                    navigate('/')
+                  }}
+                  className={`sidebar-button w-full flex items-center space-x-3 px-3 py-2 ml-6 rounded-full text-left transition-colors ${
+                    isActive('/')
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <FolderOpen className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-sm">All Files</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setOpen(false)
+                    navigate('/create-file')
+                  }}
+                  className={`sidebar-button w-full flex items-center space-x-3 px-3 py-2 ml-6 rounded-full text-left transition-colors ${
+                    isActive('/create-file')
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Plus className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-sm">Create File</span>
+                </button>
+              </>
             )}
           </div>
 
@@ -120,10 +141,9 @@ function Sidebar() {
             <button
               onClick={() => {
                 setOpen(false)
-                navigate('/folios')
               }}
-              className={`sidebar-button w-full flex items-center ${collapsed && !isMobile ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-lg text-left transition-colors ${
-                isActive('/folios')
+              className={`sidebar-button w-full flex items-center ${collapsed && !isMobile ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-full text-left transition-colors ${
+                isMainMenuActive('/folios', ['/create-folio'])
                   ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               } ${collapsed && !isMobile ? 'px-2' : ''}`}
@@ -135,20 +155,36 @@ function Sidebar() {
             
             {/* Create Folio submenu - only show when expanded */}
             {(!collapsed || isMobile) && (
-              <button
-                onClick={() => {
-                  setOpen(false)
-                  navigate('/create-folio')
-                }}
-                className={`sidebar-button w-full flex items-center space-x-3 px-3 py-2 ml-6 rounded-lg text-left transition-colors ${
-                  isActive('/create-folio')
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-              >
-                <Plus className="h-4 w-4 flex-shrink-0" />
-                <span className="text-sm">Create Folio</span>
-              </button>
+              <>
+                <button
+                  onClick={() => {
+                    setOpen(false)
+                    navigate('/folios')
+                  }}
+                  className={`sidebar-button w-full flex items-center space-x-3 px-3 py-2 ml-6 rounded-full text-left transition-colors ${
+                    isActive('/folios')
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <FileText className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-sm">All Folios</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setOpen(false)
+                    navigate('/create-folio')
+                  }}
+                  className={`sidebar-button w-full flex items-center space-x-3 px-3 py-2 ml-6 rounded-full text-left transition-colors ${
+                    isActive('/create-folio')
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Plus className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-sm">Create Folio</span>
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -156,7 +192,7 @@ function Sidebar() {
 
       <div className={`mt-auto w-full p-4 ${collapsed && !isMobile ? 'p-2' : ''}`}>
         {(!collapsed || isMobile) ? (
-          <div className="bg-blue-50 rounded-lg p-4">
+          <div className="bg-blue-50 rounded-full p-4">
             <h3 className="text-sm font-medium text-blue-900 mb-2">Quick Actions</h3>
             <button
               onClick={() => {
@@ -174,7 +210,7 @@ function Sidebar() {
               setOpen(false)
               navigate('/create-folio')
             }}
-            className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+            className="w-full bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition-colors flex items-center justify-center"
             title="New Folio"
           >
             <FileText className="h-5 w-5" />
