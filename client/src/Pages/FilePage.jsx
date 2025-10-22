@@ -36,13 +36,13 @@ function FilePage() {
   }
 
   const handleFileSelect = (file) => {
-    // Navigate to folios page with the file's folio as filter
-    navigate('/folios', { state: { selectedFolio: file.folio.item } })
+    // Navigate to folios page with the file id to show folios belonging to this file
+    navigate('/folios', { state: { selectedFileId: file.id } })
   }
 
   const handleDeleteFile = async (fileId) => {
     try {
-      const response = await fetch(apiUrl(`/api/files/${fileId}`), {
+      const response = await fetch(apiUrl(`/api/files?id=${fileId}`), {
         method: 'DELETE',
       });
 
