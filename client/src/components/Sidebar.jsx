@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { FileText, FolderOpen, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { FileText, FolderOpen, Menu, X, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { gsap } from 'gsap'
 
 function Sidebar() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [open, setOpen] = useState(false)
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(true)
   const sidebarRef = useRef(null)
   const overlayRef = useRef(null)
   const menuRef = useRef(null)
@@ -42,6 +43,9 @@ function Sidebar() {
     }
   }, [collapsed])
 
+  // Helper function to check if route is active
+  const isActive = (path) => location.pathname === path
+
   // Sidebar content as a function for reuse
   const sidebarContent = (isMobile = false) => (
     <div className={`bg-white shadow-lg h-full flex flex-col relative ${isMobile ? 'w-64' : ''}`}>
@@ -63,40 +67,90 @@ function Sidebar() {
         {/* Collapse/Expand button for desktop */}
         {!isMobile && (
           <button
-            className="hidden md:block absolute top-4 right-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full p-1 transition-colors"
+            className="hidden md:block absolute top-4 -right-6 bg-white text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-md p-1 transition-colors z-[1]"
             onClick={() => setCollapsed(!collapsed)}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+            {collapsed ? <ChevronRight className="h-8 w-8" /> : <ChevronLeft className="h-8 w-8" />}
           </button>
         )}
       </div>
 
-      <nav className="mt-6 flex-1">
+      <nav className="mt-6 flex-1 overflow-y-auto">
         <div className={`px-3 space-y-2 ${collapsed && !isMobile ? 'px-2' : ''}`}>
-          <button
-            onClick={() => {
-              setOpen(false)
-              navigate('/')
-            }}
-            className={`sidebar-button w-full flex items-center ${collapsed && !isMobile ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-lg text-left transition-colors bg-blue-50 text-blue-700 border-r-2 border-blue-700 ${collapsed && !isMobile ? 'px-2' : ''}`}
-            title={collapsed && !isMobile ? "Files" : ""}
-          >
-            <FolderOpen className="h-5 w-5 flex-shrink-0" />
-            {(!collapsed || isMobile) && <span className="font-medium">Files</span>}
-          </button>
+          {/* Files Section */}
+          <div className="space-y-1">
+            <button
+              onClick={() => {
+                setOpen(false)
+                navigate('/')
+              }}
+              className={`sidebar-button w-full flex items-center ${collapsed && !isMobile ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-lg text-left transition-colors ${
+                isActive('/') 
+                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              } ${collapsed && !isMobile ? 'px-2' : ''}`}
+              title={collapsed && !isMobile ? "Files" : ""}
+            >
+              <FolderOpen className="h-5 w-5 flex-shrink-0" />
+              {(!collapsed || isMobile) && <span className="font-medium">Files</span>}
+            </button>
+            
+            {/* Create File submenu - only show when expanded */}
+            {(!collapsed || isMobile) && (
+              <button
+                onClick={() => {
+                  setOpen(false)
+                  navigate('/create-file')
+                }}
+                className={`sidebar-button w-full flex items-center space-x-3 px-3 py-2 ml-6 rounded-lg text-left transition-colors ${
+                  isActive('/create-file')
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                <Plus className="h-4 w-4 flex-shrink-0" />
+                <span className="text-sm">Create File</span>
+              </button>
+            )}
+          </div>
 
-          <button
-            onClick={() => {
-              setOpen(false)
-              navigate('/folios')
-            }}
-            className={`sidebar-button w-full flex items-center ${collapsed && !isMobile ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-lg text-left transition-colors text-gray-600 hover:bg-gray-50 hover:text-gray-900 ${collapsed && !isMobile ? 'px-2' : ''}`}
-            title={collapsed && !isMobile ? "Folio" : ""}
-          >
-            <FileText className="h-5 w-5 flex-shrink-0" />
-            {(!collapsed || isMobile) && <span className="font-medium">Folio</span>}
-          </button>
+          {/* Folios Section */}
+          <div className="space-y-1">
+            <button
+              onClick={() => {
+                setOpen(false)
+                navigate('/folios')
+              }}
+              className={`sidebar-button w-full flex items-center ${collapsed && !isMobile ? 'justify-center' : 'space-x-3'} px-3 py-3 rounded-lg text-left transition-colors ${
+                isActive('/folios')
+                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              } ${collapsed && !isMobile ? 'px-2' : ''}`}
+              title={collapsed && !isMobile ? "Folio" : ""}
+            >
+              <FileText className="h-5 w-5 flex-shrink-0" />
+              {(!collapsed || isMobile) && <span className="font-medium">Folio</span>}
+            </button>
+            
+            {/* Create Folio submenu - only show when expanded */}
+            {(!collapsed || isMobile) && (
+              <button
+                onClick={() => {
+                  setOpen(false)
+                  navigate('/create-folio')
+                }}
+                className={`sidebar-button w-full flex items-center space-x-3 px-3 py-2 ml-6 rounded-lg text-left transition-colors ${
+                  isActive('/create-folio')
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                <Plus className="h-4 w-4 flex-shrink-0" />
+                <span className="text-sm">Create Folio</span>
+              </button>
+            )}
+          </div>
         </div>
       </nav>
 
