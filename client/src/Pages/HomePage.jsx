@@ -11,6 +11,9 @@ function HomePage() {
   const titleRef = useRef(null)
   const subtitleRef = useRef(null)
   const [showFileModal, setShowFileModal] = useState(false)
+  const [files, setFiles] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     // Animate title and subtitle
@@ -25,11 +28,34 @@ function HomePage() {
       { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' },
       '-=0.4'
     )
+
+    // Fetch files data
+    fetchFiles()
   }, [])
 
-  const handleCategorySelect = (category) => {
-    // Navigate to folios page with category filter
-    navigate('/folios', { state: { selectedCategory: category } })
+  const fetchFiles = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/files')
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch files')
+      }
+
+      const result = await response.json()
+      setFiles(result.data || [])
+    } catch (error) {
+      console.error('Error fetching files:', error)
+      setError(error.message)
+      toast.error('Failed to load files')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleFileSelect = (file) => {
+    // Navigate to folios page with the file's folio as filter
+    navigate('/folios', { state: { selectedFolio: file.folio.item } })
   }
 
   const handleCreateFile = async (fileData) => {
@@ -89,7 +115,7 @@ function HomePage() {
           <div className="flex items-center justify-center space-x-3 mb-4">
             <FileText className="w-12 h-12 text-blue-600" />
             <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              QuickFolio by mwasobaddy
+              QuickFolio
             </h1>
           </div>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -99,33 +125,55 @@ function HomePage() {
 
         <div ref={subtitleRef} className="mb-12">
           <p className="text-lg text-gray-500 max-w-3xl mx-auto leading-relaxed">
-            Choose a category below to manage your documents efficiently. Our system provides
-            comprehensive tools for organizing, tracking, and maintaining your important files.
+            Browse your files below. Our system provides comprehensive tools for organizing,
+            tracking, and maintaining your important documents.
           </p>
         </div>
       </div>
 
       {/* Cards Section */}
       <div className="max-w-7xl mx-auto px-4 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {categories.map((category) => (
-            <Card
-              key={category.id}
-              title={category.title}
-              description={category.description}
-              icon={category.icon}
-              delay={category.delay}
-              onClick={() => handleCategorySelect(category.id)}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="text-gray-600 mt-4">Loading files...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-red-600 mb-4">Error loading files: {error}</p>
+            <button
+              onClick={fetchFiles}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : files.length === 0 ? (
+          <div className="text-center py-12">
+            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">No files found. Create your first file!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {files.map((file, index) => (
+              <Card
+                key={file.id}
+                title={file.name}
+                description={file.description || 'No description available'}
+                icon={<FileText className="w-8 h-8" />}
+                delay={index * 0.1}
+                onClick={() => handleFileSelect(file)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Quick Actions Section */}
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <p className="text-gray-600">Create files directly or browse by category</p>
+          <p className="text-gray-600">Create new files or browse existing ones</p>
         </div>
 
         <div className="flex justify-center">
