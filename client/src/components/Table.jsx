@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { ChevronUp, ChevronDown, Download, Trash2 } from 'lucide-react'
+import { ArrowUpDown, ArrowDown, ArrowUp, Download, Trash2 } from 'lucide-react'
 import { gsap } from 'gsap'
 import { toast } from 'react-toastify'
 
@@ -9,6 +9,7 @@ function Table({
   loading, 
   onDelete, 
   onExport,
+  onBulkDelete,
   enableSelection = true,
   enableSort = true,
   enableExport = true,
@@ -93,10 +94,15 @@ function Table({
       return
     }
     
-    if (confirm(`Are you sure you want to delete ${selectedRows.size} item(s)?`)) {
-      onDelete(Array.from(selectedRows))
-      setSelectedRows(new Set())
-      toast.success(`${selectedRows.size} item(s) deleted successfully`)
+    if (onBulkDelete) {
+      onBulkDelete(Array.from(selectedRows))
+    } else {
+      // Fallback to browser confirm if no bulk delete handler provided
+      if (confirm(`Are you sure you want to delete ${selectedRows.size} item(s)?`)) {
+        onDelete(Array.from(selectedRows))
+        setSelectedRows(new Set())
+        toast.success(`${selectedRows.size} item(s) deleted successfully`)
+      }
     }
   }
 
@@ -197,7 +203,12 @@ function Table({
               {enableExport && (
                 <button
                   onClick={handleExport}
-                  className="text-blue-600 hover:text-blue-900 px-3 py-1 rounded-md hover:bg-blue-100 transition-colors flex items-center space-x-1"
+                  disabled={loading}
+                  className={`px-3 py-1 rounded-md transition-colors flex items-center space-x-1 ${
+                    loading
+                      ? 'text-gray-400 cursor-not-allowed'
+                      : 'text-blue-600 hover:text-blue-900 hover:bg-blue-100'
+                  }`}
                 >
                   <Download className="h-4 w-4" />
                   <span>Export</span>
@@ -205,7 +216,12 @@ function Table({
               )}
               <button
                 onClick={handleDeleteSelected}
-                className="text-red-600 hover:text-red-900 px-3 py-1 rounded-md hover:bg-red-100 transition-colors flex items-center space-x-1"
+                disabled={loading}
+                className={`px-3 py-1 rounded-md transition-colors flex items-center space-x-1 ${
+                  loading
+                    ? 'text-gray-400 cursor-not-allowed'
+                    : 'text-red-600 hover:text-red-900 hover:bg-red-100'
+                }`}
               >
                 <Trash2 className="h-4 w-4" />
                 <span>Delete</span>
@@ -254,14 +270,13 @@ function Table({
                         <span className="flex flex-col">
                           {sortConfig.key === col.key ? (
                             sortConfig.direction === 'asc' ? (
-                              <ChevronUp className="h-4 w-4 text-blue-600" />
+                              <ArrowUp className="h-4 w-4 text-blue-600" />
                             ) : (
-                              <ChevronDown className="h-4 w-4 text-blue-600" />
+                              <ArrowDown className="h-4 w-4 text-blue-600" />
                             )
                           ) : (
                             <span className="text-gray-400">
-                              <ChevronUp className="h-3 w-3 -mb-1" />
-                              <ChevronDown className="h-3 w-3" />
+                              <ArrowUpDown className="h-4 w-4" />
                             </span>
                           )}
                         </span>
@@ -304,7 +319,12 @@ function Table({
           {enableExport && selectedRows.size === 0 && (
             <button
               onClick={handleExport}
-              className="text-blue-600 hover:text-blue-900 px-3 py-1 rounded-md hover:bg-blue-100 transition-colors flex items-center space-x-1 text-sm"
+              disabled={loading}
+              className={`px-3 py-1 rounded-md transition-colors flex items-center space-x-1 text-sm ${
+                loading
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-blue-600 hover:text-blue-900 hover:bg-blue-100'
+              }`}
             >
               <Download className="h-4 w-4" />
               <span>Export All</span>

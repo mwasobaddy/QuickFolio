@@ -3,17 +3,40 @@ import { toast } from 'react-toastify'
 import { useState, useMemo } from 'react'
 import Table from './Table'
 import AdvancedSearchFilter from './AdvancedSearchFilter'
+import DeleteModal from './DeleteModal'
 
-function FolioTable({ folios, loading, onDelete, onCreateClick }) {
+function FolioTable({ folios, loading, onDelete, onCreateClick, onEditClick }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({})
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null, type: 'single' })
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    if (!dateString) return '-'
+    
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return '-'
+    
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     })
+  }
+
+  const formatDateForCSV = (dateString) => {
+    if (!dateString) return ''
+    
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return ''
+    
+    // Format as MM/DD/YYYY which Excel recognizes as dates
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+    const year = date.getFullYear()
+    
+    return `${month}/${day}/${year}`
   }
 
   // Filter and search logic
@@ -92,31 +115,67 @@ function FolioTable({ folios, loading, onDelete, onCreateClick }) {
     return filtered
   }, [folios, searchTerm, filters])
 
-  const handleDelete = (ids) => {
-    // Handle single or multiple deletes
-    if (Array.isArray(ids)) {
-      ids.forEach(id => onDelete(id))
-    } else {
-      onDelete(ids)
+  const handleDelete = async (ids) => {
+    setDeleteLoading(true)
+    try {
+      // Handle single or multiple deletes
+      if (Array.isArray(ids)) {
+        await Promise.all(ids.map(id => onDelete(id)))
+      } else {
+        await onDelete(ids)
+      }
+    } finally {
+      setDeleteLoading(false)
+      setDeleteModal({ isOpen: false, item: null, type: 'single' })
     }
   }
 
-  const handleExport = (data) => {
-    // Custom export function for folios
-    const headers = 'Folio Number,Running No,Description,Drafted By,Letter Date,Created\n'
-    const rows = data.map(folio => 
-      `"${folio.item}","${folio.runningNo}","${folio.description || ''}","${folio.draftedBy}","${formatDate(folio.letterDate)}","${formatDate(folio.createdAt)}"`
-    ).join('\n')
-    
-    const csv = headers + rows
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `folios-export-${Date.now()}.csv`
-    a.click()
-    window.URL.revokeObjectURL(url)
-    toast.success('Folios exported successfully')
+  const openDeleteModal = (item, type = 'single') => {
+    setDeleteModal({ isOpen: true, item, type })
+  }
+
+  const closeDeleteModal = () => {
+    setDeleteModal({ isOpen: false, item: null, type: 'single' })
+  }
+
+  const confirmDelete = async () => {
+    if (deleteModal.item) {
+      if (deleteModal.type === 'multiple' && Array.isArray(deleteModal.item)) {
+        await handleDelete(deleteModal.item)
+      } else {
+        await handleDelete(deleteModal.item.id)
+      }
+    }
+  }
+
+  const handleBulkDelete = (ids) => {
+    openDeleteModal(ids, 'multiple')
+  }
+
+  const handleExport = async (data) => {
+    setExportLoading(true)
+    try {
+      // Simulate async operation for better UX (even though export is fast)
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Custom export function for folios
+      const headers = 'Folio Number,Running No,Description,Drafted By,Letter Date,Created\n'
+      const rows = data.map(folio => 
+        `"${folio.item}","${folio.runningNo}","${folio.description || ''}","${folio.draftedBy}","${formatDateForCSV(folio.letterDate)}","${formatDateForCSV(folio.createdAt)}"`
+      ).join('\n')
+      
+      const csv = headers + rows
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `folios-export-${Date.now()}.csv`
+      a.click()
+      window.URL.revokeObjectURL(url)
+      toast.success('Folios exported successfully')
+    } finally {
+      setExportLoading(false)
+    }
   }
 
   const handleSearch = (term) => {
@@ -162,7 +221,7 @@ function FolioTable({ folios, loading, onDelete, onCreateClick }) {
     },
     {
       key: 'runningNo',
-      label: 'Running No',
+      label: 'Running_No',
       sortable: true,
       className: 'px-6 py-4 whitespace-nowrap text-sm text-gray-500'
     },
@@ -175,13 +234,13 @@ function FolioTable({ folios, loading, onDelete, onCreateClick }) {
     },
     {
       key: 'draftedBy',
-      label: 'Drafted By',
+      label: 'Drafted_By',
       sortable: true,
       className: 'px-6 py-4 whitespace-nowrap text-sm text-gray-500'
     },
     {
       key: 'letterDate',
-      label: 'Letter Date',
+      label: 'Letter_Date',
       sortable: true,
       className: 'px-6 py-4 whitespace-nowrap text-sm text-gray-500',
       accessor: (row) => formatDate(row.letterDate)
@@ -201,8 +260,13 @@ function FolioTable({ folios, loading, onDelete, onCreateClick }) {
       render: (row) => (
         <div className="flex justify-end space-x-2">
           <button
-            onClick={() => toast.info('Edit functionality coming soon!')}
-            className="text-blue-600 hover:text-blue-900 p-1 transition-colors"
+            onClick={() => onEditClick(row)}
+            disabled={deleteLoading || exportLoading}
+            className={`p-1 transition-colors ${
+              deleteLoading || exportLoading 
+                ? 'text-gray-400 cursor-not-allowed' 
+                : 'text-blue-600 hover:text-blue-900'
+            }`}
             title="Edit"
           >
             <Edit className="h-4 w-4" />
@@ -210,11 +274,14 @@ function FolioTable({ folios, loading, onDelete, onCreateClick }) {
           <button
             onClick={(e) => {
               e.stopPropagation()
-              if (confirm('Are you sure you want to delete this folio?')) {
-                onDelete(row.id)
-              }
+              openDeleteModal(row, 'single')
             }}
-            className="text-red-600 hover:text-red-900 p-1 transition-colors"
+            disabled={deleteLoading || exportLoading}
+            className={`p-1 transition-colors ${
+              deleteLoading || exportLoading 
+                ? 'text-gray-400 cursor-not-allowed' 
+                : 'text-red-600 hover:text-red-900'
+            }`}
             title="Delete"
           >
             <Trash2 className="h-4 w-4" />
@@ -224,7 +291,7 @@ function FolioTable({ folios, loading, onDelete, onCreateClick }) {
     }
   ]
 
-  if (loading) {
+  if (loading || deleteLoading || exportLoading) {
     return (
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200">
@@ -285,7 +352,12 @@ function FolioTable({ folios, loading, onDelete, onCreateClick }) {
             onClick={() => {
               onCreateClick()
             }}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            disabled={deleteLoading || exportLoading}
+            className={`px-4 py-2 rounded-md transition-colors flex items-center space-x-2 ${
+              deleteLoading || exportLoading
+                ? 'bg-gray-400 cursor-not-allowed text-gray-200'
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
           >
             <Plus className="h-4 w-4" />
             <span>New Folio</span>
@@ -302,14 +374,29 @@ function FolioTable({ folios, loading, onDelete, onCreateClick }) {
       <Table
         columns={columns}
         data={filteredFolios}
-        loading={loading}
+        loading={loading || deleteLoading || exportLoading}
         onDelete={handleDelete}
         onExport={handleExport}
+        onBulkDelete={handleBulkDelete}
         enableSelection={true}
         enableSort={true}
         enableExport={true}
         emptyMessage="No folios"
         emptyDescription="Get started by creating a new folio."
+      />
+
+      <DeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        title={deleteModal.type === 'multiple' ? "Delete Folios" : "Delete Folio"}
+        message={
+          deleteModal.type === 'multiple' && Array.isArray(deleteModal.item)
+            ? `Are you sure you want to delete ${deleteModal.item.length} folio(s)? This action cannot be undone.`
+            : `Are you sure you want to delete folio "${deleteModal.item?.item}"? This action cannot be undone.`
+        }
+        confirmText={deleteModal.type === 'multiple' ? "Delete Folios" : "Delete Folio"}
+        variant="danger"
       />
     </div>
   )
