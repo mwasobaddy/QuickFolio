@@ -1,13 +1,16 @@
 import { useNavigate } from 'react-router-dom'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Card from '../components/Card'
-import { Flask, BookOpen, Award, FileText } from 'lucide-react'
+import CreateFileModal from '../components/CreateFileModal'
+import { Beaker, BookOpen, Award, FileText, Plus, Upload } from 'lucide-react'
 import { gsap } from 'gsap'
+import { toast } from 'react-toastify'
 
 function HomePage() {
   const navigate = useNavigate()
   const titleRef = useRef(null)
   const subtitleRef = useRef(null)
+  const [showFileModal, setShowFileModal] = useState(false)
 
   useEffect(() => {
     // Animate title and subtitle
@@ -29,12 +32,31 @@ function HomePage() {
     navigate('/folios', { state: { selectedCategory: category } })
   }
 
+  const handleCreateFile = async (fileData) => {
+    try {
+      // Here you would typically send the file data to your API
+      // For now, we'll just show a success message
+      console.log('File data:', fileData)
+      toast.success('File uploaded successfully!')
+
+      // In a real implementation, you would:
+      // const response = await fetch('/api/files', {
+      //   method: 'POST',
+      //   body: fileData
+      // })
+
+    } catch (error) {
+      console.error('File upload error:', error)
+      toast.error('Error uploading file. Please try again.')
+    }
+  }
+
   const categories = [
     {
       id: 'research-innovation',
       title: 'Research & Innovation',
       description: 'Manage research proposals, innovation projects, and scientific documentation for groundbreaking discoveries and technological advancements.',
-      icon: <Flask className="w-8 h-8" />,
+      icon: <Beaker className="w-8 h-8" />,
       delay: 0.2
     },
     {
@@ -54,7 +76,8 @@ function HomePage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Hero Section */}
       <div className="text-center py-16 px-4">
         <div ref={titleRef} className="mb-6">
@@ -93,13 +116,32 @@ function HomePage() {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="text-center py-8 border-t border-gray-200 bg-white/50">
-        <p className="text-gray-500 text-sm">
-          © 2025 QuickFolio. Built for efficient document management.
-        </p>
+      {/* Quick Actions Section */}
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+          <p className="text-gray-600">Upload files directly or browse by category</p>
+        </div>
+
+        <div className="flex justify-center">
+          <button
+            onClick={() => setShowFileModal(true)}
+            className="flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+          >
+            <Upload className="w-6 h-6" />
+            <span>Upload New File</span>
+          </button>
+        </div>
       </div>
     </div>
+
+    {/* File Upload Modal */}
+    <CreateFileModal
+      isOpen={showFileModal}
+      onClose={() => setShowFileModal(false)}
+      onSubmit={handleCreateFile}
+    />
+    </>
   )
 }
 
