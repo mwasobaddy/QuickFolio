@@ -5,6 +5,7 @@ import CreateFileModal from '../components/CreateFileModal'
 import { Beaker, BookOpen, Award, FileText, Plus } from 'lucide-react'
 import { gsap } from 'gsap'
 import { toast } from 'react-toastify'
+import { apiUrl } from '../lib/api'
 
 function HomePage() {
   const navigate = useNavigate()
@@ -36,7 +37,7 @@ function HomePage() {
   const fetchFiles = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/files')
+      const response = await fetch(apiUrl('/api/files'))
 
       if (!response.ok) {
         throw new Error('Failed to fetch files')
@@ -60,7 +61,7 @@ function HomePage() {
 
   const handleCreateFile = async (fileData) => {
     try {
-      const response = await fetch('/api/files', {
+      const response = await fetch(apiUrl('/api/files'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
