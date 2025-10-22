@@ -52,12 +52,12 @@ function Sidebar() {
           <button
             onClick={() => {
               setOpen(false)
-              navigate('/folios')
+              navigate('/')
             }}
             className={`sidebar-button w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-left transition-colors bg-blue-50 text-blue-700 border-r-2 border-blue-700`}
           >
             <Eye className="h-5 w-5" />
-            <span className="font-medium">View Folios</span>
+            <span className="font-medium">Home</span>
           </button>
 
           <button

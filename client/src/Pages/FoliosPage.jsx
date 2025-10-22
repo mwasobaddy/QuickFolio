@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import FolioTable from '../components/FolioTable'
 import CreateFolioModal from '../components/CreateFolioModal'
 import { apiUrl } from '../lib/api'
 import { toast } from 'react-toastify'
+import { ArrowLeft } from 'lucide-react'
 
 function FoliosPage() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingFolio, setEditingFolio] = useState(null)
   const [folios, setFolios] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedCategory, setSelectedCategory] = useState(null)
 
   // Listen for create modal events from sidebar
   useEffect(() => {
@@ -19,6 +24,13 @@ function FoliosPage() {
     window.addEventListener('openCreateModal', handleOpenCreateModal)
     return () => window.removeEventListener('openCreateModal', handleOpenCreateModal)
   }, [])
+
+  // Check for selected category from navigation state
+  useEffect(() => {
+    if (location.state?.selectedCategory) {
+      setSelectedCategory(location.state.selectedCategory)
+    }
+  }, [location.state])
 
   const fetchFolios = async () => {
     try {
@@ -85,11 +97,41 @@ function FoliosPage() {
     }
   }
 
+  const getCategoryTitle = (category) => {
+    switch (category) {
+      case 'research-innovation':
+        return 'Research & Innovation'
+      case 'knowledge-management':
+        return 'Knowledge Management'
+      case 'nacosti':
+        return 'NACOSTI'
+      default:
+        return 'All Folios'
+    }
+  }
+
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">QuickFolio</h1>
-        <p className="text-gray-600">Manage your folios and letters</p>
+        <div className="flex items-center space-x-4 mb-4">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back to Home</span>
+          </button>
+        </div>
+
+        <h1 className="text-3xl font-bold text-gray-900">
+          {selectedCategory ? getCategoryTitle(selectedCategory) : 'All Folios'}
+        </h1>
+        <p className="text-gray-600">
+          {selectedCategory
+            ? `Managing ${getCategoryTitle(selectedCategory).toLowerCase()} documents`
+            : 'Manage your folios and letters'
+          }
+        </p>
       </div>
 
       <FolioTable
