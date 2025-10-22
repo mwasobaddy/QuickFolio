@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { toast } from 'react-toastify'
 import { X, Calendar, User, FileText, Hash } from 'lucide-react'
+import { gsap } from 'gsap'
 
 function CreateFolioModal({ isOpen, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
@@ -12,6 +13,20 @@ function CreateFolioModal({ isOpen, onClose, onSubmit }) {
   })
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
+  const modalRef = useRef(null)
+  const overlayRef = useRef(null)
+
+  useEffect(() => {
+    if (isOpen && modalRef.current && overlayRef.current) {
+      // Animate overlay
+      gsap.fromTo(overlayRef.current, { opacity: 0 }, { opacity: 1, duration: 0.2 })
+      // Animate modal
+      gsap.fromTo(modalRef.current, 
+        { opacity: 0, scale: 0.9, y: 20 }, 
+        { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'back.out(1.7)' }
+      )
+    }
+  }, [isOpen])
 
   // Skeleton loader component for form fields
   const SkeletonField = ({ className = "" }) => (
@@ -83,8 +98,8 @@ function CreateFolioModal({ isOpen, onClose, onSubmit }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+    <div ref={overlayRef} className="fixed inset-0 bg-black/10 backdrop-blur-xs flex items-center justify-center z-50">
+      <div ref={modalRef} className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h3 className="text-lg font-medium text-gray-900">Create New Folio</h3>
           <button
@@ -117,7 +132,7 @@ function CreateFolioModal({ isOpen, onClose, onSubmit }) {
             <>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Folio Number *
+                  Folio Number <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -127,7 +142,7 @@ function CreateFolioModal({ isOpen, onClose, onSubmit }) {
                     value={formData.item}
                     onChange={handleChange}
                     placeholder="e.g., KeNHA/05/GEN/Vol.7/0673"
-                    className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400 ${
                       errors.item ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -137,7 +152,7 @@ function CreateFolioModal({ isOpen, onClose, onSubmit }) {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Running Number *
+                  Running Number <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <Hash className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -147,7 +162,7 @@ function CreateFolioModal({ isOpen, onClose, onSubmit }) {
                     value={formData.runningNo}
                     onChange={handleChange}
                     placeholder="e.g., 0673"
-                    className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400 ${
                       errors.runningNo ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -165,13 +180,13 @@ function CreateFolioModal({ isOpen, onClose, onSubmit }) {
                   onChange={handleChange}
                   rows={3}
                   placeholder="Optional description..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Drafted By *
+                  Drafted By <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -181,7 +196,7 @@ function CreateFolioModal({ isOpen, onClose, onSubmit }) {
                     value={formData.draftedBy}
                     onChange={handleChange}
                     placeholder="Name of the person who drafted"
-                    className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400 ${
                       errors.draftedBy ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -191,7 +206,7 @@ function CreateFolioModal({ isOpen, onClose, onSubmit }) {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Letter Date *
+                  Letter Date <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -200,7 +215,7 @@ function CreateFolioModal({ isOpen, onClose, onSubmit }) {
                     name="letterDate"
                     value={formData.letterDate}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400 ${
                       errors.letterDate ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
